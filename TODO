@@ -1,6 +1,7 @@
 MISSING/BUGS/TODO:
-	- direction keys don't work (w,s,a,d)
-	- rom launcher works but roms are unselectable
-	- pref menus showing but flickering between tabs
-	- segfaults if you try to select something in a
-	  pref tab anyway
+
+ROM Launcher crashes:
+root@palm-webos-device: # ./stella
+stella: src/gui/Rect.hxx:75: GUI::Rect::Rect(int, int, int, int): Assertion `isValidRect()' failed.
+Aborted
+
