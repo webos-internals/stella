@@ -1,0 +1,6 @@
+MISSING/BUGS/TODO:
+	- direction keys don't work (w,s,a,d)
+	- rom launcher works but roms are unselectable
+	- pref menus showing but flickering between tabs
+	- segfaults if you try to select something in a
+	  pref tab anyway

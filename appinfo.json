@@ -1,0 +1,15 @@
+{
+       "title": "Stella Atari 2600 VCS Emulator 2.5",
+       "id": "org.webosinternals.stella",
+       "version": "0.0.1",
+       "release_date": "8-Feb-2010",
+       "vendor": "WebOS Internals",
+       "vendor_email": "support@webos-internals.org",
+       "vendor_url": "http://www.webos-internals.org/wiki/Application:Stella",
+       "type": "web",
+       "main": "index.html",
+       "icon": "icon.png",
+       "removable": "true",
+       "noWindow": true,
+       "noDeprecatedStyles": true
+}
