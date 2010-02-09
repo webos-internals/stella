@@ -8,12 +8,12 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: DebuggerParser.cxx,v 1.103 2008/03/23 17:43:21 stephena Exp $
+// $Id: DebuggerParser.cxx 1874 2009-09-09 18:00:31Z stephena $
 //============================================================================
 
 #include <fstream>
@@ -23,10 +23,14 @@
 #include "Dialog.hxx"
 #include "Debugger.hxx"
 #include "CpuDebug.hxx"
+#include "RamDebug.hxx"
+#include "RiotDebug.hxx"
+#include "TIADebug.hxx"
 #include "DebuggerParser.hxx"
 #include "YaccParser.hxx"
 #include "M6502.hxx"
 #include "Expression.hxx"
+#include "FSNode.hxx"
 #include "RomWidget.hxx"
 
 #ifdef CHEATCODE_SUPPORT
@@ -122,16 +126,14 @@ string DebuggerParser::run(const string& command)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 string DebuggerParser::exec(const string& file, bool verbose)
 {
-  string ret, path = file;
+  string ret;
   int count = 0;
   char buffer[256]; // FIXME: static buffers suck
 
-  if( file.find_last_of('.') == string::npos )
-    path += ".stella";
-
-  ifstream in(path.c_str());
+  FilesystemNode node(file);
+  ifstream in(node.getPath().c_str());
   if(!in.is_open())
-    return red("file \"" + path + "\" not found.");
+    return red("file \'" + node.getRelativePath() + "\' not found.");
 
   while( !in.eof() ) {
     if(!in.getline(buffer, 255))
@@ -149,7 +151,7 @@ string DebuggerParser::exec(const string& file, bool verbose)
   ret += "Executed ";
   ret += debugger->valueToString(count);
   ret += " commands from \"";
-  ret += path;
+  ret += file;
   ret += "\"\n";
   return ret;
 }
@@ -559,7 +561,8 @@ string DebuggerParser::eval()
   char buf[50];
   string ret;
   for(int i=0; i<argCount; i++) {
-    string label = debugger->equates().getLabel(args[i]);
+    // TODO - technically, we should determine if the label is read or write
+    string label = debugger->equates().getLabel(args[i], true);
     if(label != "") {
       ret += label;
       ret += ": ";
@@ -598,7 +601,8 @@ string DebuggerParser::trapStatus(int addr)
   else
     result += "   none   ";
 
-  string l = debugger->equates().getLabel(addr);
+  // TODO - technically, we should determine if the label is read or write
+  const string& l = debugger->equates().getLabel(addr, true);
   if(l != "") {
     result += "  (";
     result += l;
@@ -926,6 +930,13 @@ void DebuggerParser::executeHelp()
   }
   commandResult += "\nBuilt-in functions:\n";
   commandResult += debugger->builtinHelp();
+  commandResult += "\nPseudo-registers:\n";
+  commandResult += "_scan     Current scanline count\n";
+  commandResult += "_bank     Currently selected bank\n";
+  commandResult += "_fcount   Number of frames since emulation started\n";
+  commandResult += "_cclocks  Color clocks on current scanline\n";
+  commandResult += "_vsync    Whether vertical sync is enabled (1 or 0)\n";
+  commandResult += "_vblank   Whether vertical blank is enabled (1 or 0)\n";
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -974,16 +985,19 @@ void DebuggerParser::executeList()
 // "listbreaks"
 void DebuggerParser::executeListbreaks()
 {
-  char buf[255];
+  ostringstream buf;
   int count = 0;
 
-  for(unsigned int i=0; i<0x10000; i++) {
-    if(debugger->breakpoints().isSet(i)) {
-      sprintf(buf, "%s ", debugger->equates().getFormatted(i, 4));
-      commandResult += buf;
-      if(! (++count % 8) ) commandResult += "\n";
+  for(unsigned int i = 0; i < 0x10000; i++)
+  {
+    if(debugger->breakpoints().isSet(i))
+    {
+      buf << debugger->equates().getLabel(i, true, 4) << " ";
+      if(! (++count % 8) ) buf << "\n";
     }
   }
+  commandResult += buf.str();
+
   /*
   if(count)
     return ret;
@@ -1090,7 +1104,7 @@ void DebuggerParser::executePrint()
 void DebuggerParser::executeRam()
 {
   if(argCount == 0)
-    commandResult = debugger->dumpRAM();
+    commandResult = debugger->ramDebug().toString();
   else
     commandResult = debugger->setRAM(args);
 }
@@ -1104,10 +1118,20 @@ void DebuggerParser::executeReset()
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// "rewind"
+void DebuggerParser::executeRewind()
+{
+  if(debugger->rewindState())
+    commandResult = "rewind by one level";
+  else
+    commandResult = "no states left to rewind";
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // "riot"
 void DebuggerParser::executeRiot()
 {
-  commandResult = debugger->riotState();
+  commandResult = debugger->riotDebug().toString();
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1254,7 +1278,7 @@ void DebuggerParser::executeStep()
 // "tia"
 void DebuggerParser::executeTia()
 {
-  commandResult = debugger->dumpTIA();
+  commandResult = debugger->tiaDebug().toString();
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1296,7 +1320,7 @@ void DebuggerParser::executeTrapwrite()
 // "undef"
 void DebuggerParser::executeUndef()
 {
-  if(debugger->equates().undefine(argStrings[0]))
+  if(debugger->equates().removeEquate(argStrings[0]))
   {
     debugger->myRom->invalidate();
     commandResult = argStrings[0] + " now undefined";
@@ -1542,7 +1566,7 @@ DebuggerParser::Command DebuggerParser::commands[kNumCommands] = {
 
   {
     "list",
-    "List source (if loaded with loadlst)",
+    "List source (if loaded with loadlist)",
     true,
     false,
     { kARG_WORD, kARG_END_ARGS },
@@ -1655,6 +1679,15 @@ DebuggerParser::Command DebuggerParser::commands[kNumCommands] = {
     true,
     { kARG_END_ARGS },
     &DebuggerParser::executeReset
+  },
+
+  {
+    "rewind",
+    "Rewind state to last step/trace/scanline/frame advance",
+    false,
+    true,
+    { kARG_END_ARGS },
+    &DebuggerParser::executeRewind
   },
 
   {

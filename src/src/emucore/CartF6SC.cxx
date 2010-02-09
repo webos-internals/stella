@@ -8,15 +8,16 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: CartF6SC.cxx,v 1.15 2008/02/06 13:45:21 stephena Exp $
+// $Id: CartF6SC.cxx 1862 2009-08-27 22:59:14Z stephena $
 //============================================================================
 
 #include <cassert>
+#include <cstring>
 
 #include "Random.hxx"
 #include "System.hxx"
@@ -26,17 +27,10 @@
 CartridgeF6SC::CartridgeF6SC(const uInt8* image)
 {
   // Copy the ROM image into my buffer
-  for(uInt32 addr = 0; addr < 16384; ++addr)
-  {
-    myImage[addr] = image[addr];
-  }
+  memcpy(myImage, image, 16384);
 
-  // Initialize RAM with random values
-  class Random random;
-  for(uInt32 i = 0; i < 128; ++i)
-  {
-    myRAM[i] = random.next();
-  }
+  // This cart contains 128 bytes extended RAM @ 0x1000
+  registerRamArea(0x1000, 128, 0x80, 0x00);
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -47,6 +41,11 @@ CartridgeF6SC::~CartridgeF6SC()
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void CartridgeF6SC::reset()
 {
+  // Initialize RAM with random values
+  class Random random;
+  for(uInt32 i = 0; i < 128; ++i)
+    myRAM[i] = random.next();
+
   // Upon reset we switch to bank 0
   bank(0);
 }
@@ -96,7 +95,7 @@ void CartridgeF6SC::install(System& system)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 uInt8 CartridgeF6SC::peek(uInt16 address)
 {
-  address = address & 0x0FFF;
+  address &= 0x0FFF;
 
   // Switch banks if necessary
   switch(address)
@@ -125,16 +124,22 @@ uInt8 CartridgeF6SC::peek(uInt16 address)
       break;
   }
   
-  // NOTE: This does not handle accessing RAM, however, this function
-  // should never be called for RAM because of the way page accessing
-  // has been setup
-  return myImage[myCurrentBank * 4096 + address];
+  // Reading from the write port triggers an unwanted write
+  // The value written to RAM is somewhat undefined, so we use 0
+  // Thanks to Kroko of AtariAge for this advice and code idea
+  if(address < 0x0080)  // Write port is at 0xF000 - 0xF080 (128 bytes)
+  {
+    if(myBankLocked) return 0;
+    else return myRAM[address] = 0;
+  }  
+  else
+    return myImage[(myCurrentBank << 12) + address];
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void CartridgeF6SC::poke(uInt16 address, uInt8)
 {
-  address = address & 0x0FFF;
+  address &= 0x0FFF;
 
   // Switch banks if necessary
   switch(address)
@@ -171,11 +176,11 @@ void CartridgeF6SC::poke(uInt16 address, uInt8)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void CartridgeF6SC::bank(uInt16 bank)
 { 
-  if(bankLocked) return;
+  if(myBankLocked) return;
 
   // Remember what bank we're in
   myCurrentBank = bank;
-  uInt16 offset = myCurrentBank * 4096;
+  uInt16 offset = myCurrentBank << 12;
   uInt16 shift = mySystem->pageShift();
   uInt16 mask = mySystem->pageMask();
 
@@ -208,8 +213,7 @@ int CartridgeF6SC::bankCount()
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 bool CartridgeF6SC::patch(uInt16 address, uInt8 value)
 {
-  address = address & 0x0FFF;
-  myImage[myCurrentBank * 4096 + address] = value;
+  myImage[(myCurrentBank << 12) + (address & 0x0FFF)] = value;
   return true;
 } 
 
@@ -223,7 +227,7 @@ uInt8* CartridgeF6SC::getImage(int& size)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 bool CartridgeF6SC::save(Serializer& out) const
 {
-  string cart = name();
+  const string& cart = name();
 
   try
   {
@@ -239,12 +243,7 @@ bool CartridgeF6SC::save(Serializer& out) const
   }
   catch(const char* msg)
   {
-    cerr << msg << endl;
-    return false;
-  }
-  catch(...)
-  {
-    cerr << "Unknown error in save state for " << cart << endl;
+    cerr << "ERROR: CartridgeF6SC::save" << endl << "  " << msg << endl;
     return false;
   }
 
@@ -252,9 +251,9 @@ bool CartridgeF6SC::save(Serializer& out) const
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-bool CartridgeF6SC::load(Deserializer& in)
+bool CartridgeF6SC::load(Serializer& in)
 {
-  string cart = name();
+  const string& cart = name();
 
   try
   {
@@ -270,12 +269,7 @@ bool CartridgeF6SC::load(Deserializer& in)
   }
   catch(const char* msg)
   {
-    cerr << msg << endl;
-    return false;
-  }
-  catch(...)
-  {
-    cerr << "Unknown error in load state for " << cart << endl;
+    cerr << "ERROR: CartridgeF6SC::load" << endl << "  " << msg << endl;
     return false;
   }
 

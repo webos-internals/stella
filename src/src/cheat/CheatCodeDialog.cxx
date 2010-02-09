@@ -8,12 +8,12 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: CheatCodeDialog.cxx,v 1.17 2008/02/06 13:45:19 stephena Exp $
+// $Id: CheatCodeDialog.cxx 1724 2009-05-13 13:55:40Z stephena $
 //
 //   Based on code from ScummVM - Scumm Interpreter
 //   Copyright (C) 2002-2004 The ScummVM project
@@ -37,63 +37,72 @@
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 CheatCodeDialog::CheatCodeDialog(OSystem* osystem, DialogContainer* parent,
-                                 const GUI::Font& font, int x, int y, int w, int h)
-  : Dialog(osystem, parent, x, y, w, h)
+                                 const GUI::Font& font)
+  : Dialog(osystem, parent, 0, 0, 0, 0)
 {
+  const int lineHeight   = font.getLineHeight(),
+            fontWidth    = font.getMaxCharWidth(),
+            buttonWidth  = font.getStringWidth("Defaults") + 20,
+            buttonHeight = font.getLineHeight() + 4;
   int xpos, ypos;
   WidgetArray wid;
   ButtonWidget* b;
 
+  // Set real dimensions
+  _w = 46 * fontWidth + 10;
+  _h = 11 * (lineHeight + 4) + 10;
+
   // List of cheats, with checkboxes to enable/disable
   xpos = 10;  ypos = 10;
-  myCheatList = new CheckListWidget(this, font, xpos, ypos,
-                                    _w - 25 - kButtonWidth, _h - 50);
+  myCheatList =
+    new CheckListWidget(this, font, xpos, ypos, _w - buttonWidth - 25,
+                        _h - 2*buttonHeight - 10);
   myCheatList->setStyle(kXFill);
   myCheatList->setEditable(false);
   wid.push_back(myCheatList);
 
-  xpos += myCheatList->getWidth() + 15;  ypos = 15;
-  b = addButton(font, xpos, ypos, "Add", kAddCheatCmd);
+  xpos += myCheatList->getWidth() + 5;  ypos = 15;
+
+  b = new ButtonWidget(this, font, xpos, ypos, buttonWidth, buttonHeight,
+                       "Add", kAddCheatCmd);
   wid.push_back(b);
-  myEditButton = addButton(font, xpos, ypos+=20, "Edit", kEditCheatCmd);
+  ypos += lineHeight + 10;
+
+  myEditButton =
+    new ButtonWidget(this, font, xpos, ypos, buttonWidth, buttonHeight,
+                     "Edit", kEditCheatCmd);
   wid.push_back(myEditButton);
-  myRemoveButton = addButton(font, xpos, ypos+=20, "Remove", kRemCheatCmd);
+  ypos += lineHeight + 10;
+
+  myRemoveButton =
+    new ButtonWidget(this, font, xpos, ypos, buttonWidth, buttonHeight,
+                     "Remove", kRemCheatCmd);
   wid.push_back(myRemoveButton);
-  b = addButton(font, xpos, ypos+=30, "One shot", kAddOneShotCmd);
+  ypos += lineHeight + 10;
+
+  b = new ButtonWidget(this, font, xpos, ypos, buttonWidth, buttonHeight,
+                       "One shot", kAddOneShotCmd);
   wid.push_back(b);
 
   // Inputbox which will pop up when adding/editing a cheat
   StringList labels;
   labels.push_back("Name: ");
   labels.push_back("Code: ");
-  myCheatInput = new InputTextDialog(this, font, labels, 0, 0);
+  myCheatInput = new InputTextDialog(this, font, labels);
   myCheatInput->setTarget(this);
 
-  // Add OK and Cancel buttons
-#ifndef MAC_OSX
-  b = addButton(font, _w - 2 * (kButtonWidth + 7), _h - 24, "OK", kOKCmd);
-  wid.push_back(b);
-  addOKWidget(b);
-  myCancelButton = addButton(font, _w - (kButtonWidth + 10), _h - 24,
-                             "Cancel", kCloseCmd);
-  wid.push_back(myCancelButton);
-  addCancelWidget(myCancelButton);
-#else
-  myCancelButton = addButton(font, _w - 2 * (kButtonWidth + 7), _h - 24,
-                             "Cancel", kCloseCmd);
-  wid.push_back(myCancelButton);
-  addCancelWidget(myCancelButton);
-  b = addButton(font, _w - (kButtonWidth + 10), _h - 24, "OK", kOKCmd);
-  wid.push_back(b);
-  addOKWidget(b);
-#endif
-
   addToFocusList(wid);
+
+  // Add OK and Cancel buttons
+  wid.clear();
+  addOKCancelBGroup(wid, font);
+  addBGroupToFocusList(wid);
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 CheatCodeDialog::~CheatCodeDialog()
 {
+  delete myCheatInput;
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -105,7 +114,7 @@ void CheatCodeDialog::loadConfig()
   StringList l;
   BoolArray b;
 
-  const CheatList& list = instance()->cheat().list();
+  const CheatList& list = instance().cheat().list();
   for(unsigned int i = 0; i < list.size(); ++i)
   {
     l.push_back(list[i]->name());
@@ -125,7 +134,7 @@ void CheatCodeDialog::loadConfig()
 void CheatCodeDialog::saveConfig()
 {
   // Inspect checkboxes for enable/disable codes
-  const CheatList& list = instance()->cheat().list();
+  const CheatList& list = instance().cheat().list();
   for(unsigned int i = 0; i < myCheatList->getList().size(); ++i)
   {
     if(myCheatList->getState(i))
@@ -138,9 +147,7 @@ void CheatCodeDialog::saveConfig()
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void CheatCodeDialog::addCheat()
 {
-  // We have to add the dialog first, so it can be centered
-  // The methods after this depend on the dialog having the correct dimensions
-  parent()->addDialog(myCheatInput);
+  myCheatInput->show();    // Center input dialog over entire screen
   myCheatInput->setEditString("", 0);
   myCheatInput->setEditString("", 1);
   myCheatInput->setTitle("");
@@ -155,13 +162,11 @@ void CheatCodeDialog::editCheat()
   if(idx < 0)
     return;
 
-  const CheatList& list = instance()->cheat().list();
+  const CheatList& list = instance().cheat().list();
   const string& name = list[idx]->name();
   const string& code = list[idx]->code();
 
-  // We have to add the dialog first, so it can be centered
-  // The methods after this depend on the dialog having the correct dimensions
-  parent()->addDialog(myCheatInput);
+  myCheatInput->show();    // Center input dialog over entire screen
   myCheatInput->setEditString(name, 0);
   myCheatInput->setEditString(code, 1);
   myCheatInput->setTitle("");
@@ -172,16 +177,14 @@ void CheatCodeDialog::editCheat()
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void CheatCodeDialog::removeCheat()
 {
-  instance()->cheat().remove(myCheatList->getSelected());
+  instance().cheat().remove(myCheatList->getSelected());
   loadConfig();  // reload the cheat list
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void CheatCodeDialog::addOneShotCheat()
 {
-  // We have to add the dialog first, so it can be centered
-  // The methods after this depend on the dialog having the correct dimensions
-  parent()->addDialog(myCheatInput);
+  myCheatInput->show();    // Center input dialog over entire screen
   myCheatInput->setEditString("One-shot cheat", 0);
   myCheatInput->setEditString("", 1);
   myCheatInput->setTitle("");
@@ -220,12 +223,11 @@ void CheatCodeDialog::handleCommand(CommandSender* sender, int cmd,
     {
       const string& name = myCheatInput->getResult(0);
       const string& code = myCheatInput->getResult(1);
-      if(instance()->cheat().isValidCode(code))
+      if(instance().cheat().isValidCode(code))
       {
-        instance()->cheat().add(name, code);
-        parent()->removeDialog();
+        myCheatInput->close();
+        instance().cheat().add(name, code);
         loadConfig();  // show changes onscreen
-        myCancelButton->setEnabled(false);  // cannot cancel when a new cheat added
       }
       else
         myCheatInput->setTitle("Invalid code");
@@ -238,12 +240,11 @@ void CheatCodeDialog::handleCommand(CommandSender* sender, int cmd,
       const string& code = myCheatInput->getResult(1);
       bool enable = myCheatList->getSelectedState();
       int idx = myCheatList->getSelected();
-      if(instance()->cheat().isValidCode(code))
+      if(instance().cheat().isValidCode(code))
       {
-        instance()->cheat().add(name, code, enable, idx);
-        parent()->removeDialog();
+        myCheatInput->close();
+        instance().cheat().add(name, code, enable, idx);
         loadConfig();  // show changes onscreen
-        myCancelButton->setEnabled(false);  // cannot cancel when a new cheat added
       }
       else
         myCheatInput->setTitle("Invalid code");
@@ -262,10 +263,10 @@ void CheatCodeDialog::handleCommand(CommandSender* sender, int cmd,
     {
       const string& name = myCheatInput->getResult(0);
       const string& code = myCheatInput->getResult(1);
-      if(instance()->cheat().isValidCode(code))
+      if(instance().cheat().isValidCode(code))
       {
-        instance()->cheat().addOneShot(name, code);
-        parent()->removeDialog();
+        myCheatInput->close();
+        instance().cheat().addOneShot(name, code);
       }
       else
         myCheatInput->setTitle("Invalid code");

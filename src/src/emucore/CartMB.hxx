@@ -8,12 +8,12 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: CartMB.hxx,v 1.10 2008/02/06 13:45:21 stephena Exp $
+// $Id: CartMB.hxx 1849 2009-08-05 16:05:34Z stephena $
 //============================================================================
 
 #ifndef CARTRIDGEMB_HXX
@@ -29,8 +29,13 @@ class System;
   There are 16 4K banks.
   Accessing $1FF0 switches to next bank.
 
+  Note that while the bankswitch type for this class has historically
+  been 'MB', one must now use 'F0' to activate it.
+  This brings the bankswitch names in line with those used in z26 and
+  the various cart programming apps for KrokCart and Harmony/Melody.
+
   @author  Eckhard Stolberg
-  @version $Id: CartMB.hxx,v 1.10 2008/02/06 13:45:21 stephena Exp $
+  @version $Id: CartMB.hxx 1849 2009-08-05 16:05:34Z stephena $
 */
 class CartridgeMB : public Cartridge
 {
@@ -106,19 +111,19 @@ class CartridgeMB : public Cartridge
     virtual bool save(Serializer& out) const;
 
     /**
-      Load the current state of this cart from the given Deserializer.
+      Load the current state of this cart from the given Serializer.
 
-      @param in  The Deserializer object to use
+      @param in  The Serializer object to use
       @return  False on any errors, else true
     */
-    virtual bool load(Deserializer& in);
+    virtual bool load(Serializer& in);
 
     /**
       Get a descriptor for the device name (used in error checking).
 
       @return The name of the object
     */
-    virtual string name() const { return "CartridgeMB"; }
+    virtual string name() const { return "CartridgeF0"; }
 
   public:
     /**

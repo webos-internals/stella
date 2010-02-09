@@ -8,12 +8,12 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: CheatManager.hxx,v 1.10 2008/02/06 13:45:19 stephena Exp $
+// $Id: CheatManager.hxx 1724 2009-05-13 13:55:40Z stephena $
 //============================================================================
 
 #ifndef CHEAT_MANAGER_HXX
@@ -36,7 +36,7 @@ typedef map<string,string> CheatCodeMap;
   the list of all cheats currently in use.
 
   @author  Stephen Anthony
-  @version $Id: CheatManager.hxx,v 1.10 2008/02/06 13:45:19 stephena Exp $
+  @version $Id: CheatManager.hxx 1724 2009-05-13 13:55:40Z stephena $
 */
 class CheatManager
 {

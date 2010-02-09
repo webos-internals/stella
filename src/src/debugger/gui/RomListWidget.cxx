@@ -8,17 +8,18 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: RomListWidget.cxx,v 1.11 2008/02/06 13:45:20 stephena Exp $
+// $Id: RomListWidget.cxx 1867 2009-08-30 19:37:10Z stephena $
 //
 //   Based on code from ScummVM - Scumm Interpreter
 //   Copyright (C) 2002-2004 The ScummVM project
 //============================================================================
 
+#include "bspf.hxx"
 #include "ContextMenu.hxx"
 #include "RomListWidget.hxx"
 
@@ -26,22 +27,22 @@
 RomListWidget::RomListWidget(GuiObject* boss, const GUI::Font& font,
                              int x, int y, int w, int h)
   : CheckListWidget(boss, font, x, y, w, h),
-    myMenu(NULL),
-    myHighlightedItem(-1)
+    myMenu(NULL)
 {
   _type = kRomListWidget;
 
-  myMenu = new ContextMenu(this, font);
-
-  StringList l;
+  StringMap l;
 //  l.push_back("Add bookmark");
-  l.push_back("Save ROM");
-  l.push_back("Set PC");
+  l.push_back("Save ROM", "saverom");
+  l.push_back("Set PC", "setpc");
+  myMenu = new ContextMenu(this, font, l);
 
-  myMenu->setList(l);
+  // Take advantage of a wide debugger window when possible
+  const int fontWidth = font.getMaxCharWidth(),
+            numchars = w / fontWidth;
 
-  myLabelWidth  = font.getMaxCharWidth() * 16;
-  myBytesWidth  = font.getMaxCharWidth() * 12;
+  myLabelWidth = BSPF_max(20, int(0.35 * (numchars - 12))) * fontWidth;
+  myBytesWidth = 12 * fontWidth;
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -66,11 +67,11 @@ void RomListWidget::handleMouseDown(int x, int y, int button, int clickCount)
   // Grab right mouse button for context menu, send left to base class
   if(button == 2)
   {
-    myMenu->setPos(x + getAbsX(), y + getAbsY());
-    myMenu->show();
+    // Add menu at current x,y mouse location
+    myMenu->show(x + getAbsX(), y + getAbsY());
   }
-
-  ListWidget::handleMouseDown(x, y, button, clickCount);
+  else
+    ListWidget::handleMouseDown(x, y, button, clickCount);
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -83,17 +84,17 @@ bool RomListWidget::handleEvent(Event::Type e)
 void RomListWidget::drawWidget(bool hilite)
 {
 //cerr << "RomListWidget::drawWidget\n";
-  FrameBuffer& fb = _boss->instance()->frameBuffer();
+  FBSurface& s = _boss->dialog().surface();
   int i, pos, len = _list.size();
   string buffer;
   int deltax;
 
   // Draw a thin frame around the list and to separate columns
-  fb.hLine(_x, _y, _x + _w - 1, kColor);
-  fb.hLine(_x, _y + _h - 1, _x + _w - 1, kShadowColor);
-  fb.vLine(_x, _y, _y + _h - 1, kColor);
+  s.hLine(_x, _y, _x + _w - 1, kColor);
+  s.hLine(_x, _y + _h - 1, _x + _w - 1, kShadowColor);
+  s.vLine(_x, _y, _y + _h - 1, kColor);
 
-  fb.vLine(_x + CheckboxWidget::boxSize() + 5, _y, _y + _h - 1, kColor);
+  s.vLine(_x + CheckboxWidget::boxSize() + 5, _y, _y + _h - 1, kColor);
 
   // Draw the list items
   for (i = 0, pos = _currentPos; i < _rows && pos < len; i++, pos++)
@@ -111,29 +112,27 @@ void RomListWidget::drawWidget(bool hilite)
     // Draw highlighted item in a frame
     if (_highlightedItem == pos)
     {
-      fb.frameRect(_x + l.left - 3, _y + 1 + _fontHeight * i,
-                   _w - l.left, _fontHeight, kDbgColorHi);
+      s.frameRect(_x + l.left - 3, _y + 1 + _fontHeight * i,
+                  _w - l.left, _fontHeight, kDbgColorHi);
     }
 
     // Draw the selected item inverted, on a highlighted background.
     if (_selectedItem == pos && _hasFocus)
     {
       if (!_editMode)
-        fb.fillRect(_x + r.left - 3, _y + 1 + _fontHeight * i,
-                    r.width(), _fontHeight,
-                    kTextColorHi);
+        s.fillRect(_x + r.left - 3, _y + 1 + _fontHeight * i,
+                   r.width(), _fontHeight, kTextColorHi);
       else
-        fb.frameRect(_x + r.left - 3, _y + 1 + _fontHeight * i,
-                     r.width(), _fontHeight,
-                     kTextColorHi);
+        s.frameRect(_x + r.left - 3, _y + 1 + _fontHeight * i,
+                    r.width(), _fontHeight, kTextColorHi);
     }
 
     // Draw labels and actual disassembly
-    fb.drawString(_font, myLabel[pos], _x + r.left - myLabelWidth, y,
-                  myLabelWidth, kTextColor);
+    s.drawString(_font, myLabel[pos], _x + r.left - myLabelWidth, y,
+                 myLabelWidth, kTextColor);
 
-    fb.drawString(_font, myDisasm[pos], _x + r.right, y,
-                  _w - r.right, kTextColor);
+    s.drawString(_font, myDisasm[pos], _x + r.right, y,
+                 _w - r.right, kTextColor);
 
     // Draw editable bytes
     if (_selectedItem == pos && _editMode)
@@ -142,14 +141,14 @@ void RomListWidget::drawWidget(bool hilite)
       adjustOffset();
       deltax = -_editScrollOffset;
 
-      fb.drawString(_font, buffer, _x + r.left, y, r.width(), kTextColor,
-                    kTextAlignLeft, deltax, false);
+      s.drawString(_font, buffer, _x + r.left, y, r.width(), kTextColor,
+                   kTextAlignLeft, deltax, false);
     }
     else
     {
       buffer = _list[pos];
       deltax = 0;
-      fb.drawString(_font, buffer, _x + r.left, y, r.width(), kTextColor);
+      s.drawString(_font, buffer, _x + r.left, y, r.width(), kTextColor);
     }
   }
 
@@ -185,4 +184,19 @@ GUI::Rect RomListWidget::getEditRect() const
   r.right   = r.left + myBytesWidth;
 	
   return r;
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+bool RomListWidget::tryInsertChar(char c, int pos)
+{
+  // Not sure how efficient this is, or should we even care?
+  c = tolower(c);
+  if((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') ||
+     c == '%' || c == '#' || c == '$' || c == ' ')
+  {
+    _editString.insert(pos, 1, c);
+    return true;
+  }
+  else
+    return false;
 }

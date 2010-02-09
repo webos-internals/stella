@@ -14,7 +14,7 @@
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
 // Windows CE Port by Kostas Nakos
-// $Id: missing.cpp,v 1.10 2007/01/27 10:52:49 knakos Exp $
+// $Id: missing.cpp 1724 2009-05-13 13:55:40Z stephena $
 //============================================================================
 
 #include <queue>

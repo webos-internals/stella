@@ -8,12 +8,12 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: TiaOutputWidget.cxx,v 1.15 2008/03/23 17:43:22 stephena Exp $
+// $Id: TiaOutputWidget.cxx 1869 2009-09-02 00:12:29Z stephena $
 //
 //   Based on code from ScummVM - Scumm Interpreter
 //   Copyright (C) 2002-2004 The ScummVM project
@@ -44,14 +44,11 @@ TiaOutputWidget::TiaOutputWidget(GuiObject* boss, const GUI::Font& font,
   _type = kTiaOutputWidget;
 
   // Create context menu for commands
-  myMenu = new ContextMenu(this, font);
-
-  StringList l;
-  l.push_back("Fill to scanline");
-  l.push_back("Set breakpoint");
-  l.push_back("Set zoom position");
-
-  myMenu->setList(l);
+  StringMap l;
+  l.push_back("Fill to scanline", "scanline");
+  l.push_back("Set breakpoint", "bp");
+  l.push_back("Set zoom position", "zoom");
+  myMenu = new ContextMenu(this, font, l);
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -67,26 +64,6 @@ void TiaOutputWidget::loadConfig()
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void TiaOutputWidget::advanceScanline(int lines)
-{
-  while(lines)
-  {
-    instance()->console().mediaSource().updateScanline();
-    --lines;
-  }
-}
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void TiaOutputWidget::advance(int frames)
-{
-  while(frames)
-  {
-    instance()->console().mediaSource().update();
-    --frames;
-  }
-}
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void TiaOutputWidget::handleMouseDown(int x, int y, int button, int clickCount)
 {
   // Grab right mouse button for command context menu
@@ -95,56 +72,83 @@ void TiaOutputWidget::handleMouseDown(int x, int y, int button, int clickCount)
     myClickX = x;
     myClickY = y;
 
-    myMenu->setPos(x + getAbsX(), y + getAbsY());
-    myMenu->show();
+    // Add menu at current x,y mouse location
+    myMenu->show(x + getAbsX(), y + getAbsY());
   }
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void TiaOutputWidget::handleCommand(CommandSender* sender, int cmd, int data, int id)
 {
-  int ystart = atoi(instance()->console().properties().get(Display_YStart).c_str());
+  int ystart = atoi(instance().console().properties().get(Display_YStart).c_str());
 
   switch(cmd)
   {
     case kCMenuItemSelectedCmd:
-      switch(myMenu->getSelected())
+    {
+      const string& rmb = myMenu->getSelectedTag();
+
+      if(rmb == "scanline")
       {
-        case 0:
+        ostringstream command;
+        int lines = myClickY + ystart;
+        if(instance().console().tia().partialFrame())
+          lines -= instance().console().tia().scanlines();
+        if(lines > 0)
         {
-          ostringstream command;
-          int lines = myClickY + ystart -
-              instance()->debugger().tiaDebug().scanlines();
-          if(lines > 0)
-          {
-            command << "scanline #" << lines;
-            instance()->debugger().parser().run(command.str());
-          }
-          break;
+          command << "scanline #" << lines;
+          instance().debugger().parser().run(command.str());
         }
-
-        case 1:
-        {
-          ostringstream command;
-          int scanline = myClickY + ystart;
-          command << "breakif _scan==#" << scanline;
-          instance()->debugger().parser().run(command.str());
-          break;
-        }
-
-        case 2:
-          if(myZoom)
-            myZoom->setPos(myClickX, myClickY);
-          break;
+      }
+      else if(rmb == "bp")
+      {
+        ostringstream command;
+        int scanline = myClickY + ystart;
+        command << "breakif _scan==#" << scanline;
+        instance().debugger().parser().run(command.str());
+      }
+      else if(rmb == "zoom")
+      {
+        if(myZoom)
+          myZoom->setPos(myClickX, myClickY);
       }
       break;
+    }
   }
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void TiaOutputWidget::drawWidget(bool hilite)
 {
-  // FIXME - check if we're in 'greyed out mode' and act accordingly
-  instance()->frameBuffer().refresh();
-  instance()->frameBuffer().drawMediaSource();
+//cerr << "TiaOutputWidget::drawWidget\n";
+  FBSurface& s = dialog().surface();
+
+  const uInt32 width  = instance().console().tia().width(),
+               height = instance().console().tia().height();
+
+  // Get current scanline position
+  // This determines where the frame greying should start, and where a
+  // scanline 'pointer' should be drawn
+  uInt16 scanx, scany, scanoffset;
+  bool visible = instance().console().tia().scanlinePos(scanx, scany);
+  scanoffset = width * scany + scanx;
+
+  for(uInt32 y = 0, i = 0; y < height; ++y)
+  {
+    uInt32* line_ptr = myLineBuffer;
+    for(uInt32 x = 0; x < width; ++x, ++i)
+    {
+      uInt8 shift = i > scanoffset ? 1 : 0;
+      uInt32 pixel = instance().frameBuffer().tiaPixel(i, shift);
+      *line_ptr++ = pixel;
+      *line_ptr++ = pixel;
+    }
+    s.drawPixels(myLineBuffer, _x, _y+y, width << 1);
+  }
+
+  // Show electron beam position
+  if(visible && scanx < width && scany+2u < height)
+  {
+    s.fillRect(_x+(scanx<<1), _y+scany, 3, 3, kBtnTextColor);
+  }
 }

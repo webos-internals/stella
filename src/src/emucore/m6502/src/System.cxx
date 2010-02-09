@@ -8,12 +8,12 @@
 // MM     MM 66  66 55  55 00  00 22
 // MM     MM  6666   5555   0000  222222
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: System.cxx,v 1.25 2008/02/19 12:33:07 stephena Exp $
+// $Id: System.cxx 1862 2009-08-27 22:59:14Z stephena $
 //============================================================================
 
 #include <assert.h>
@@ -35,7 +35,8 @@ System::System(uInt16 n, uInt16 m)
     myM6502(0),
     myTIA(0),
     myCycles(0),
-    myDataBusState(0)
+    myDataBusState(0),
+    myDataBusLocked(false)
 {
   // Make sure the arguments are reasonable
   assert((1 <= m) && (m <= n) && (n <= 16));
@@ -258,14 +259,9 @@ bool System::save(Serializer& out) const
       if(!myDevices[i]->save(out))
         return false;
   }
-  catch(char *msg)
+  catch(const char* msg)
   {
-    cerr << msg << endl;
-    return false;
-  }
-  catch(...)
-  {
-    cerr << "Unknown error in save state for " << device << endl;
+    cerr << "ERROR: System::save" << endl << "  " << msg << endl;
     return false;
   }
 
@@ -273,7 +269,7 @@ bool System::save(Serializer& out) const
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-bool System::load(Deserializer& in)
+bool System::load(Serializer& in)
 {
   const string& device = name();
   try
@@ -292,14 +288,9 @@ bool System::load(Deserializer& in)
       if(!myDevices[i]->load(in))
         return false;
   }
-  catch(char *msg)
+  catch(const char* msg)
   {
-    cerr << msg << endl;
-    return false;
-  }
-  catch(...)
-  {
-    cerr << "Unknown error in load state for " << device << endl;
+    cerr << "ERROR: System::load" << endl << "  " << msg << endl;
     return false;
   }
 

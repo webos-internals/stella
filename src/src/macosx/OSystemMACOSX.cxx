@@ -8,12 +8,12 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: OSystemMACOSX.cxx,v 1.18 2008/02/06 13:45:24 stephena Exp $
+// $Id: OSystemMACOSX.cxx 1824 2009-07-01 16:04:28Z stephena $
 //============================================================================
 
 #include <cstdlib>
@@ -30,11 +30,6 @@
 #include "OSystem.hxx"
 #include "OSystemMACOSX.hxx"
 #include "MenusEvents.h"
-
-#ifdef HAVE_GETTIMEOFDAY
-  #include <time.h>
-  #include <sys/time.h>
-#endif
 
 extern "C" {
   void macOpenConsole(char *romname);
@@ -92,27 +87,15 @@ void macOSXSendMenuEvent(int event)
 OSystemMACOSX::OSystemMACOSX()
   : OSystem()
 {
-  const string& basedir = string(getenv("HOME")) + "/.stella";
-  setBaseDir(basedir);
-  setConfigFile(basedir + "/stellarc");
+  setBaseDir("~/.stella");
+
+  // This will be overridden, as OSX uses plist files for settings
+  setConfigFile("~/.stella/stellarc");
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 OSystemMACOSX::~OSystemMACOSX()
 {
-}
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-uInt32 OSystemMACOSX::getTicks()
-{
-#ifdef HAVE_GETTIMEOFDAY
-  timeval now;
-  gettimeofday(&now, 0);
-
-  return (uInt32) (now.tv_sec * 1000000 + now.tv_usec);
-#else
-  return (uInt32) SDL_GetTicks() * 1000;
-#endif
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

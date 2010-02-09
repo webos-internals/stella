@@ -8,31 +8,29 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: CartF8.cxx,v 1.17 2008/02/06 13:45:21 stephena Exp $
+// $Id: CartF8.cxx 1862 2009-08-27 22:59:14Z stephena $
 //============================================================================
 
 #include <cassert>
+#include <cstring>
 
 #include "System.hxx"
 #include "CartF8.hxx"
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-CartridgeF8::CartridgeF8(const uInt8* image, bool swapbanks)
+CartridgeF8::CartridgeF8(const uInt8* image, bool startlow)
 {
   // Copy the ROM image into my buffer
-  for(uInt32 addr = 0; addr < 8192; ++addr)
-  {
-    myImage[addr] = image[addr];
-  }
+  memcpy(myImage, image, 8192);
 
   // Normally bank 1 is the reset bank, unless we're dealing with ROMs
   // that have been incorrectly created with banks in the opposite order
-  myResetBank = swapbanks ? 0 : 1;
+  myResetBank = startlow ? 0 : 1;
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -74,7 +72,7 @@ void CartridgeF8::install(System& system)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 uInt8 CartridgeF8::peek(uInt16 address)
 {
-  address = address & 0x0FFF;
+  address &= 0x0FFF;
 
   // Switch banks if necessary
   switch(address)
@@ -93,13 +91,13 @@ uInt8 CartridgeF8::peek(uInt16 address)
       break;
   }
 
-  return myImage[myCurrentBank * 4096 + address];
+  return myImage[(myCurrentBank << 12) + address];
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void CartridgeF8::poke(uInt16 address, uInt8)
 {
-  address = address & 0x0FFF;
+  address &= 0x0FFF;
 
   // Switch banks if necessary
   switch(address)
@@ -122,11 +120,11 @@ void CartridgeF8::poke(uInt16 address, uInt8)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void CartridgeF8::bank(uInt16 bank)
 { 
-  if(bankLocked) return;
+  if(myBankLocked) return;
 
   // Remember what bank we're in
   myCurrentBank = bank;
-  uInt16 offset = myCurrentBank * 4096;
+  uInt16 offset = myCurrentBank << 12;
   uInt16 shift = mySystem->pageShift();
   uInt16 mask = mySystem->pageMask();
 
@@ -159,9 +157,7 @@ int CartridgeF8::bankCount()
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 bool CartridgeF8::patch(uInt16 address, uInt8 value)
 {
-  address &= 0xfff;
-  myImage[myCurrentBank * 4096 + address] = value;
-  bank(myCurrentBank);
+  myImage[(myCurrentBank << 12) + (address & 0x0FFF)] = value;
   return true;
 } 
 
@@ -175,7 +171,7 @@ uInt8* CartridgeF8::getImage(int& size)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 bool CartridgeF8::save(Serializer& out) const
 {
-  string cart = name();
+  const string& cart = name();
 
   try
   {
@@ -185,12 +181,7 @@ bool CartridgeF8::save(Serializer& out) const
   }
   catch(const char* msg)
   {
-    cerr << msg << endl;
-    return false;
-  }
-  catch(...)
-  {
-    cerr << "Unknown error in save state for " << cart << endl;
+    cerr << "ERROR: CartridgeF8::save" << endl << "  " << msg << endl;
     return false;
   }
 
@@ -198,9 +189,9 @@ bool CartridgeF8::save(Serializer& out) const
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-bool CartridgeF8::load(Deserializer& in)
+bool CartridgeF8::load(Serializer& in)
 {
-  string cart = name();
+  const string& cart = name();
 
   try
   {
@@ -211,12 +202,7 @@ bool CartridgeF8::load(Deserializer& in)
   }
   catch(const char* msg)
   {
-    cerr << msg << endl;
-    return false;
-  }
-  catch(...)
-  {
-    cerr << "Unknown error in load state for " << cart << endl;
+    cerr << "ERROR: CartridgeF8SC::load" << endl << "  " << msg << endl;
     return false;
   }
 

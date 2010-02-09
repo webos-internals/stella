@@ -8,12 +8,12 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: Driving.cxx,v 1.16 2008/03/03 16:27:16 estolberg Exp $
+// $Id: Driving.cxx 1724 2009-05-13 13:55:40Z stephena $
 //============================================================================
 
 #include "Event.hxx"
@@ -22,8 +22,8 @@
 #include "Driving.hxx"
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Driving::Driving(Jack jack, const Event& event)
-  : Controller(jack, event, Controller::Driving),
+Driving::Driving(Jack jack, const Event& event, const System& system)
+  : Controller(jack, event, system, Controller::Driving),
     myCounter(0)
 {
   if(myJack == Left)

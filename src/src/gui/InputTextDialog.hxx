@@ -8,12 +8,12 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: InputTextDialog.hxx,v 1.10 2008/02/06 13:45:23 stephena Exp $
+// $Id: InputTextDialog.hxx 1724 2009-05-13 13:55:40Z stephena $
 //
 //   Based on code from ScummVM - Scumm Interpreter
 //   Copyright (C) 2002-2004 The ScummVM project
@@ -35,8 +35,14 @@ class InputTextDialog : public Dialog, public CommandSender
 {
   public:
     InputTextDialog(GuiObject* boss, const GUI::Font& font,
-                    const StringList& labels, int x, int y);
+                    const StringList& labels);
     virtual ~InputTextDialog();
+
+    /** Place the input dialog onscreen and center it */
+    void show();
+
+    /** Show input dialog onscreen at the specified coordinates */
+    void show(uInt32 x, uInt32 y);
 
     const string& getResult(int idx = 0);
 
@@ -46,20 +52,21 @@ class InputTextDialog : public Dialog, public CommandSender
 
     void setFocus(int idx = 0);
 
+    /** This dialog uses its own positioning, so we override Dialog::center() */
+    void center();
+
   protected:
     virtual void handleCommand(CommandSender* sender, int cmd, int data, int id);
 
   private:
-  private:
     InputWidget       myInput;
     StaticTextWidget* myTitle;
 
+    bool myEnableCenter;
     bool myErrorFlag;
     int	 myCmd;
 
-    enum {
-      kAcceptCmd = 'ACPT'
-    };
+    uInt32 myXOrig, myYOrig;
 };
 
 #endif

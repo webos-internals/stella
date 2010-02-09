@@ -7,7 +7,7 @@
    TextEdit application.
 
 */
-/* $Id: Preferences.h,v 1.1.1.1 2004/06/16 02:30:30 markgrebe Exp $ */
+/* $Id: Preferences.h 1724 2009-05-13 13:55:40Z stephena $ */
 #import <Cocoa/Cocoa.h>
 
 @interface Preferences : NSObject {

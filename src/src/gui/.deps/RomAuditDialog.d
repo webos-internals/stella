@@ -1,11 +1,10 @@
 src/gui/RomAuditDialog.o: src/gui/RomAuditDialog.cxx \
-  src/emucore/m6502/src/bspf/src/bspf.hxx src/gui/BrowserDialog.hxx \
-  src/gui/Dialog.hxx src/gui/Command.hxx src/gui/Widget.hxx \
+  src/emucore/m6502/src/bspf/src/bspf.hxx \
+  src/gui/LauncherFilterDialog.hxx src/emucore/OSystem.hxx \
   src/common/Array.hxx src/emucore/m6502/src/bspf/src/bspf.hxx \
-  src/emucore/Event.hxx src/emucore/m6502/src/bspf/src/bspf.hxx \
-  src/gui/Font.hxx src/emucore/FrameBuffer.hxx \
-  /usr/local/include/SDL/SDL.h /usr/local/include/SDL/SDL_main.h \
-  /usr/local/include/SDL/SDL_stdinc.h /usr/local/include/SDL/SDL_config.h \
+  src/emucore/EventHandler.hxx /usr/local/include/SDL/SDL.h \
+  /usr/local/include/SDL/SDL_main.h /usr/local/include/SDL/SDL_stdinc.h \
+  /usr/local/include/SDL/SDL_config.h \
   /usr/local/include/SDL/SDL_platform.h \
   /usr/local/include/SDL/begin_code.h /usr/local/include/SDL/close_code.h \
   /usr/local/include/SDL/SDL_audio.h /usr/local/include/SDL/SDL_error.h \
@@ -18,40 +17,33 @@ src/gui/RomAuditDialog.o: src/gui/RomAuditDialog.cxx \
   /usr/local/include/SDL/SDL_video.h \
   /usr/local/include/SDL/SDL_joystick.h /usr/local/include/SDL/SDL_quit.h \
   /usr/local/include/SDL/SDL_loadso.h /usr/local/include/SDL/SDL_timer.h \
-  /usr/local/include/SDL/SDL_version.h src/emucore/EventHandler.hxx \
-  src/common/Array.hxx src/emucore/Event.hxx src/emucore/Control.hxx \
+  /usr/local/include/SDL/SDL_version.h src/emucore/Event.hxx \
+  src/emucore/m6502/src/bspf/src/bspf.hxx src/emucore/Control.hxx \
   src/emucore/Serializable.hxx src/emucore/Serializer.hxx \
-  src/emucore/Deserializer.hxx src/gui/StringList.hxx \
-  src/common/VideoModeList.hxx src/common/Array.hxx src/gui/GuiObject.hxx \
-  src/emucore/OSystem.hxx src/emucore/FrameBuffer.hxx src/gui/Rect.hxx \
-  src/emucore/FSNode.hxx src/gui/DialogContainer.hxx \
-  src/emucore/EventHandler.hxx src/gui/Stack.hxx \
+  src/gui/StringList.hxx src/common/Array.hxx src/emucore/FrameBuffer.hxx \
+  src/emucore/Settings.hxx src/gui/Rect.hxx src/gui/Dialog.hxx \
+  src/gui/Command.hxx src/gui/Widget.hxx src/emucore/Event.hxx \
+  src/gui/Font.hxx src/emucore/FrameBuffer.hxx src/gui/GuiObject.hxx \
+  src/gui/Rect.hxx src/emucore/Settings.hxx src/gui/StringList.hxx \
+  src/gui/BrowserDialog.hxx src/emucore/FSNode.hxx \
+  src/common/SharedPtr.hxx src/gui/DialogContainer.hxx \
+  src/emucore/EventHandler.hxx src/common/Stack.hxx \
   src/gui/EditTextWidget.hxx src/gui/EditableWidget.hxx \
   src/gui/ProgressDialog.hxx src/emucore/Props.hxx \
-  src/emucore/PropsSet.hxx src/emucore/Settings.hxx \
+  src/emucore/PropsSet.hxx src/emucore/Props.hxx \
   src/gui/RomAuditDialog.hxx
 
 src/emucore/m6502/src/bspf/src/bspf.hxx:
 
-src/gui/BrowserDialog.hxx:
+src/gui/LauncherFilterDialog.hxx:
 
-src/gui/Dialog.hxx:
-
-src/gui/Command.hxx:
-
-src/gui/Widget.hxx:
+src/emucore/OSystem.hxx:
 
 src/common/Array.hxx:
 
 src/emucore/m6502/src/bspf/src/bspf.hxx:
 
-src/emucore/Event.hxx:
-
-src/emucore/m6502/src/bspf/src/bspf.hxx:
-
-src/gui/Font.hxx:
-
-src/emucore/FrameBuffer.hxx:
+src/emucore/EventHandler.hxx:
 
 /usr/local/include/SDL/SDL.h:
 
@@ -105,11 +97,9 @@ src/emucore/FrameBuffer.hxx:
 
 /usr/local/include/SDL/SDL_version.h:
 
-src/emucore/EventHandler.hxx:
-
-src/common/Array.hxx:
-
 src/emucore/Event.hxx:
+
+src/emucore/m6502/src/bspf/src/bspf.hxx:
 
 src/emucore/Control.hxx:
 
@@ -117,29 +107,47 @@ src/emucore/Serializable.hxx:
 
 src/emucore/Serializer.hxx:
 
-src/emucore/Deserializer.hxx:
-
 src/gui/StringList.hxx:
-
-src/common/VideoModeList.hxx:
 
 src/common/Array.hxx:
 
-src/gui/GuiObject.hxx:
-
-src/emucore/OSystem.hxx:
-
 src/emucore/FrameBuffer.hxx:
+
+src/emucore/Settings.hxx:
 
 src/gui/Rect.hxx:
 
+src/gui/Dialog.hxx:
+
+src/gui/Command.hxx:
+
+src/gui/Widget.hxx:
+
+src/emucore/Event.hxx:
+
+src/gui/Font.hxx:
+
+src/emucore/FrameBuffer.hxx:
+
+src/gui/GuiObject.hxx:
+
+src/gui/Rect.hxx:
+
+src/emucore/Settings.hxx:
+
+src/gui/StringList.hxx:
+
+src/gui/BrowserDialog.hxx:
+
 src/emucore/FSNode.hxx:
+
+src/common/SharedPtr.hxx:
 
 src/gui/DialogContainer.hxx:
 
 src/emucore/EventHandler.hxx:
 
-src/gui/Stack.hxx:
+src/common/Stack.hxx:
 
 src/gui/EditTextWidget.hxx:
 
@@ -151,6 +159,6 @@ src/emucore/Props.hxx:
 
 src/emucore/PropsSet.hxx:
 
-src/emucore/Settings.hxx:
+src/emucore/Props.hxx:
 
 src/gui/RomAuditDialog.hxx:

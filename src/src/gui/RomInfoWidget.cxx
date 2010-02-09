@@ -8,15 +8,16 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: RomInfoWidget.cxx,v 1.7 2008/03/15 19:11:00 stephena Exp $
+// $Id: RomInfoWidget.cxx 1724 2009-05-13 13:55:40Z stephena $
 //============================================================================
 
 #include <cstring>
+#include <cmath>
 #include <zlib.h>
 
 #include "FrameBuffer.hxx"
@@ -32,21 +33,18 @@ RomInfoWidget::RomInfoWidget(GuiObject* boss, const GUI::Font& font,
                              int x, int y, int w, int h)
   : Widget(boss, font, x, y, w, h),
     mySurface(NULL),
-    myDrawSurface(false),
+    mySurfaceID(-1),
+    myZoomLevel(w > 400 ? 2 : 1),
+    mySurfaceIsValid(false),
     myHaveProperties(false)
 {
-  _flags = WIDGET_ENABLED | WIDGET_RETAIN_FOCUS;
+  _flags = WIDGET_ENABLED;
   _bgcolor = _bgcolorhi = kWidColor;
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 RomInfoWidget::~RomInfoWidget()
 {
-  if(mySurface)
-  {
-    delete mySurface;
-    mySurface = NULL;
-  }
   myRomInfo.clear();
 }
 
@@ -70,7 +68,7 @@ void RomInfoWidget::setProperties(const Properties& props)
   myProperties = props;
 
   // Decide whether the information should be shown immediately
-  if(instance()->eventHandler().state() == EventHandler::S_LAUNCHER)
+  if(instance().eventHandler().state() == EventHandler::S_LAUNCHER)
   {
     parseProperties();
     setDirty(); draw();
@@ -80,36 +78,35 @@ void RomInfoWidget::setProperties(const Properties& props)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void RomInfoWidget::clearProperties()
 {
-  myHaveProperties = myDrawSurface = false;
+  myHaveProperties = mySurfaceIsValid = false;
 
   // Decide whether the information should be shown immediately
-  if(instance()->eventHandler().state() == EventHandler::S_LAUNCHER)
+  if(instance().eventHandler().state() == EventHandler::S_LAUNCHER)
   {
     setDirty(); draw();
   }
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void RomInfoWidget::initialize()
-{
-  // Delete surface; a new one will be created by parseProperties
-  delete mySurface;
-  mySurface = NULL;
-}
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void RomInfoWidget::parseProperties()
 {
-  // Initialize to empty properties entry
-  mySurfaceErrorMsg = "";
-  myDrawSurface = false;
-  myRomInfo.clear();
-
   // Check if a surface has ever been created; if so, we use it
   // The surface will always be the maximum size, but sometimes we'll
   // only draw certain parts of it
+  mySurface = instance().frameBuffer().surface(mySurfaceID);
   if(mySurface == NULL)
-    mySurface = instance()->frameBuffer().createSurface(320, 260);
+  {
+    // For some reason, we need to allocate a buffer slightly higher than
+    // the maximum that Stella can generate
+    mySurfaceID = instance().frameBuffer().allocateSurface(
+                    320*myZoomLevel, 257*myZoomLevel, false);
+    mySurface   = instance().frameBuffer().surface(mySurfaceID);
+  }
+
+  // Initialize to empty properties entry
+  mySurfaceErrorMsg = "";
+  mySurfaceIsValid = false;
+  myRomInfo.clear();
 
   // The input stream for the PNG file
   ifstream in;
@@ -123,8 +120,7 @@ void RomInfoWidget::parseProperties()
   StringList textChucks;
 
   // Get a valid filename representing a snapshot file for this rom
-  const string& filename =
-    instance()->settings().getString("ssdir") + BSPF_PATH_SEPARATOR +
+  const string& filename = instance().snapshotDir() + BSPF_PATH_SEPARATOR +
     myProperties.get(Cartridge_Name) + ".png";
 
   // Open the PNG and check for a valid signature
@@ -148,15 +144,11 @@ void RomInfoWidget::parseProperties()
         {
           if(!parseIHDR(width, height, data, size))
             throw "Invalid PNG image (IHDR)";
-
-          mySurface->setClipWidth(width);
-          mySurface->setClipHeight(height);
         }
         else if(type == "IDAT")
         {
-          if(!parseIDATChunk(instance()->frameBuffer(), mySurface,
-                             width, height, data, size))
-            throw "PNG image too large";
+          if(!parseIDATChunk(mySurface, width, height, data, size))
+            throw "Invalid PNG image (IDAT)";
         }
         else if(type == "tEXt")
           textChucks.push_back(parseTextChunk(data, size));
@@ -165,11 +157,11 @@ void RomInfoWidget::parseProperties()
       }
 
       in.close();
-      myDrawSurface = true;
+      mySurfaceIsValid = true;
     }
     catch(const char* msg)
     {
-      myDrawSurface = false;
+      mySurfaceIsValid = false;
       myRomInfo.clear();
       if(data) delete[] data;
       data = NULL;
@@ -195,29 +187,34 @@ void RomInfoWidget::parseProperties()
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void RomInfoWidget::drawWidget(bool hilite)
 {
-  FrameBuffer& fb = instance()->frameBuffer();
+//cerr << "RomInfoWidget::drawWidget" << endl;
+  FBSurface& s = dialog().surface();
 
-  fb.fillRect(_x+2, _y+2, _w-4, _h-4, kWidColor);
-  fb.box(_x, _y, _w, _h, kColor, kShadowColor);
-  fb.box(_x, _y+264, _w, _h-264, kColor, kShadowColor);
+  const int yoff = myZoomLevel > 1 ? 260*2 + 10 : 275;
+
+  s.fillRect(_x+2, _y+2, _w-4, _h-4, kWidColor);
+  s.box(_x, _y, _w, _h, kColor, kShadowColor);
+  s.box(_x, _y+yoff, _w, _h-yoff, kColor, kShadowColor);
 
   if(!myHaveProperties) return;
 
-  if(myDrawSurface && mySurface)
+  if(mySurfaceIsValid)
   {
-    int x = (_w - mySurface->getClipWidth()) >> 1;
-    int y = (266 - mySurface->getClipHeight()) >> 1;
-    fb.drawSurface(mySurface, x + getAbsX(), y + getAbsY());
+    uInt32 x = _x + ((_w - mySurface->getWidth()) >> 1);
+    uInt32 y = _y + ((yoff - mySurface->getHeight()) >> 1);
+    s.drawSurface(mySurface, x, y);
   }
   else if(mySurfaceErrorMsg != "")
   {
-    int x = _x + ((_w - _font->getStringWidth(mySurfaceErrorMsg)) >> 1);
-    fb.drawString(_font, mySurfaceErrorMsg, x, 120, _w - 10, _textcolor);
+    const GUI::Font* font = &instance().font();
+    uInt32 x = _x + ((_w - font->getStringWidth(mySurfaceErrorMsg)) >> 1);
+    uInt32 y = _y + ((yoff - font->getLineHeight()) >> 1);
+    s.drawString(font, mySurfaceErrorMsg, x, y, _w - 10, _textcolor);
   }
-  int xpos = _x + 5, ypos = _y + 266 + 5;
+  int xpos = _x + 5, ypos = _y + yoff + 10;
   for(unsigned int i = 0; i < myRomInfo.size(); ++i)
   {
-    fb.drawString(_font, myRomInfo[i], xpos, ypos, _w - 10, _textcolor);
+    s.drawString(_font, myRomInfo[i], xpos, ypos, _w - 10, _textcolor);
     ypos += _font->getLineHeight();
   }
 }
@@ -266,35 +263,74 @@ bool RomInfoWidget::parseIHDR(int& width, int& height, uInt8* data, int size)
   width  = data[0] << 24 | data[1] << 16 | data[2] << 8 | data[3];
   height = data[4] << 24 | data[5] << 16 | data[6] << 8 | data[7];
 
-  // Make sure image can fit in widget bounds
-  width  = BSPF_min(320, width);
-  height = BSPF_min(260, height);
-
   uInt8 trailer[5] = { 8, 2, 0, 0, 0 };  // 24-bit RGB
   return memcmp(trailer, data + 8, 5) == 0;
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-bool RomInfoWidget::parseIDATChunk(const FrameBuffer& fb, GUI::Surface* surface,
-                                   int width, int height, uInt8* data, int size)
+bool RomInfoWidget::parseIDATChunk(FBSurface* surface, int width, int height,
+                                   uInt8* data, int size)
 {
-  // The entire decompressed image data
-  uLongf bufsize = (width * 3 + 1) * height;
-  uInt8* buffer = new uInt8[bufsize];
+  // Figure out the original zoom level of the snapshot
+  // All snapshots generated by Stella are at most some multiple of 320
+  // pixels wide
+  // The only complication is when the aspect ratio is changed, the width
+  // can range from 256 (80%) to 320 (100%)
+  // The following calculation will work up to approx. 16x zoom level,
+  // but since Stella only generates snapshots at up to 10x, we should
+  // be fine for a while ...
+  uInt32 izoom = uInt32(ceil(width/320.0));
 
-  int pitch = width * 3;  // bytes per line of the image
+  // Set the surface size 
+  uInt32 sw = width / izoom * myZoomLevel,
+         sh = height / izoom * myZoomLevel;
+  sw = BSPF_min(sw, myZoomLevel * 320u);
+  sh = BSPF_min(sh, myZoomLevel * 256u);
+  mySurface->setWidth(sw);
+  mySurface->setHeight(sh);
+
+  // Decompress the image, and scale it correctly
+  uInt32 ipitch = width * 3 + 1;   // bytes per line of the actual PNG image
+  uLongf bufsize = ipitch * height;
+  uInt8* buffer = new uInt8[bufsize];
+  uInt32* line  = new uInt32[ipitch];
+
   if(uncompress(buffer, &bufsize, data, size) == Z_OK)
   {
-    uInt8* buf_ptr = buffer;
-    for(int row = 0; row < height; row++, buf_ptr += pitch)
+    uInt8* buf_ptr = buffer + 1;  // skip past first column (PNG filter type)
+    uInt32 buf_offset = ipitch * izoom;
+    uInt32 i_offset = 3 * izoom;
+    uInt32 srow = 0;
+
+    // We can only scan at most izoom*256 lines
+    height = BSPF_min(uInt32(height), izoom*256u);
+
+    // Grab each non-duplicate row of data from the image
+    for(int irow = 0; irow < height; irow += izoom, buf_ptr += buf_offset)
     {
-      buf_ptr++;           // skip past first byte (PNG filter type)
-      fb.bytesToSurface(surface, row, buf_ptr, pitch);
+      // Scale the image data into the temporary line buffer
+      uInt8*  i_ptr = buf_ptr;
+      uInt32* l_ptr = line;
+      for(int icol = 0; icol < width; icol += izoom, i_ptr += i_offset)
+      {
+        uInt32 pixel =
+          instance().frameBuffer().mapRGB(*i_ptr, *(i_ptr+1), *(i_ptr+2));
+        uInt32 xstride = myZoomLevel;
+        while(xstride--)
+          *l_ptr++ = pixel;
+      }
+
+      // Then fill the surface with those bytes
+      uInt32 ystride = myZoomLevel;
+      while(ystride--)
+        surface->drawPixels(line, 0, srow++, sw);
     }
     delete[] buffer;
+    delete[] line;
     return true;
   }
   delete[] buffer;
+  delete[] line;
   return false;
 }
 
@@ -303,3 +339,22 @@ string RomInfoWidget::parseTextChunk(uInt8* data, int size)
 {
   return "";
 }
+
+/*
+cerr << "surface:" << endl
+	<< "  w = " << sw << endl
+	<< "  h = " << sh << endl
+	<< "  szoom = " << myZoomLevel << endl
+	<< "  spitch = " << spitch << endl
+	<< endl;
+
+cerr << "image:" << endl
+	<< "  width  = " << width << endl
+	<< "  height = " << height << endl
+	<< "  izoom = " << izoom << endl
+	<< "  ipitch = " << ipitch << endl
+	<< "  bufsize = " << bufsize << endl
+	<< "  buf_offset = " << buf_offset << endl
+	<< "  i_offset = " << i_offset << endl
+	<< endl;
+*/

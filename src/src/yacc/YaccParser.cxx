@@ -8,12 +8,12 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: YaccParser.cxx,v 1.24 2008/03/23 17:43:22 stephena Exp $
+// $Id: YaccParser.cxx 1724 2009-05-13 13:55:40Z stephena $
 //
 //   Based on code from ScummVM - Scumm Interpreter
 //   Copyright (C) 2002-2004 The ScummVM project
@@ -213,6 +213,18 @@ CPUDEBUG_INT_METHOD getCpuSpecial(char *c) {
 TIADEBUG_INT_METHOD getTiaSpecial(char *c) {
 	if(strcmp(c, "_scan") == 0)
 		return &TIADebug::scanlines;
+
+	if(strcmp(c, "_fcount") == 0)
+		return &TIADebug::frameCount;
+
+	if(strcmp(c, "_cclocks") == 0)
+		return &TIADebug::clocksThisLine;
+
+	if(strcmp(c, "_vsync") == 0)
+		return &TIADebug::vsyncAsInt;
+
+	if(strcmp(c, "_vblank") == 0)
+		return &TIADebug::vblankAsInt;
 
 	return 0;
 }

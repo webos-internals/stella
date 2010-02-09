@@ -19,13 +19,12 @@ src/emucore/MediaFactory.o: src/emucore/MediaFactory.cxx \
   /usr/local/include/SDL/SDL_version.h src/emucore/Event.hxx \
   src/emucore/m6502/src/bspf/src/bspf.hxx src/emucore/Control.hxx \
   src/emucore/Serializable.hxx src/emucore/Serializer.hxx \
-  src/emucore/Deserializer.hxx src/gui/StringList.hxx \
-  src/common/Array.hxx src/emucore/m6502/src/bspf/src/bspf.hxx \
-  src/emucore/FrameBuffer.hxx src/common/VideoModeList.hxx \
-  src/common/Array.hxx src/emucore/Settings.hxx \
+  src/gui/StringList.hxx src/common/Array.hxx \
+  src/emucore/m6502/src/bspf/src/bspf.hxx src/emucore/FrameBuffer.hxx \
+  src/emucore/Settings.hxx src/gui/Rect.hxx \
   src/common/FrameBufferSoft.hxx src/emucore/FrameBuffer.hxx \
   src/emucore/Sound.hxx src/common/SoundNull.hxx src/emucore/Sound.hxx \
-  src/common/SoundSDL.hxx src/emucore/MediaSrc.hxx src/emucore/TIASnd.hxx
+  src/common/SoundSDL.hxx src/emucore/TIASnd.hxx
 
 src/emucore/MediaFactory.hxx:
 
@@ -99,8 +98,6 @@ src/emucore/Serializable.hxx:
 
 src/emucore/Serializer.hxx:
 
-src/emucore/Deserializer.hxx:
-
 src/gui/StringList.hxx:
 
 src/common/Array.hxx:
@@ -109,11 +106,9 @@ src/emucore/m6502/src/bspf/src/bspf.hxx:
 
 src/emucore/FrameBuffer.hxx:
 
-src/common/VideoModeList.hxx:
-
-src/common/Array.hxx:
-
 src/emucore/Settings.hxx:
+
+src/gui/Rect.hxx:
 
 src/common/FrameBufferSoft.hxx:
 
@@ -126,7 +121,5 @@ src/common/SoundNull.hxx:
 src/emucore/Sound.hxx:
 
 src/common/SoundSDL.hxx:
-
-src/emucore/MediaSrc.hxx:
 
 src/emucore/TIASnd.hxx:

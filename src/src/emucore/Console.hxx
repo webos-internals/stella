@@ -8,12 +8,12 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: Console.hxx,v 1.64 2008/02/06 13:45:21 stephena Exp $
+// $Id: Console.hxx 1872 2009-09-09 14:02:23Z stephena $
 //============================================================================
 
 #ifndef CONSOLE_HXX
@@ -22,9 +22,9 @@
 class Console;
 class Controller;
 class Event;
-class MediaSource;
 class Switches;
 class System;
+class TIA;
 
 #include "bspf.hxx"
 #include "Control.hxx"
@@ -36,10 +36,24 @@ class System;
 #include "Serializable.hxx"
 
 /**
+  Contains detailed info about a console.
+*/
+struct ConsoleInfo
+{
+  string BankSwitch;
+  string CartName;
+  string CartMD5;
+  string Control0;
+  string Control1;
+  string DisplayFormat;
+  string InitialFrameRate;
+};
+
+/**
   This class represents the entire game console.
 
   @author  Bradford W. Mott
-  @version $Id: Console.hxx,v 1.64 2008/02/06 13:45:21 stephena Exp $
+  @version $Id: Console.hxx 1872 2009-09-09 14:02:23Z stephena $
 */
 class Console : public Serializable
 {
@@ -78,11 +92,11 @@ class Console : public Serializable
     }
 
     /**
-      Get the MediaSource for this console
+      Get the TIA for this console
 
-      @return The mediasource
+      @return The TIA
     */
-    MediaSource& mediaSource() const { return *myMediaSource; }
+    TIA& tia() const { return *myTIA; }
 
     /**
       Get the properties being used by the game
@@ -128,12 +142,12 @@ class Console : public Serializable
     bool save(Serializer& out) const;
 
     /**
-      Loads the current state of this console class from the given Deserializer.
+      Loads the current state of this console class from the given Serializer.
 
-      @param in The deserializer device to load from.
+      @param in The Serializer device to load from.
       @return The result of the load.  True on success, false on failure.
     */
-    bool load(Deserializer& in);
+    bool load(Serializer& in);
 
     /**
       Get a descriptor for this console class (used in error checking).
@@ -150,9 +164,9 @@ class Console : public Serializable
     void setProperties(const Properties& props);
 
     /**
-      Query some information about this console.
+      Query detailed information about this console.
     */
-    const string& about() const { return myAboutString; }
+    inline const ConsoleInfo& about() const { return myConsoleInfo; }
 
   public:
     /**
@@ -197,8 +211,10 @@ class Console : public Serializable
 
       @param full  Whether we want a full initialization,
                    or only reset certain attributes.
+
+      @return  False on any errors, else true
     */
-    void initializeVideo(bool full = true);
+    bool initializeVideo(bool full = true);
 
     /**
       Initialize the audio subsystem wrt this class.
@@ -226,28 +242,39 @@ class Console : public Serializable
     void changeHeight(int direction);
 
     /**
+      Sets the framerate of the console, which in turn communicates
+      this to all applicable subsystems.
+    */
+    void setFramerate(float framerate);
+
+    /**
       Returns the framerate based on a number of factors
       (whether 'framerate' is set, what display format is in use, etc)
     */
-    uInt32 getFramerate() const;
+    float getFramerate() const { return myFramerate; }
 
     /**
       Toggles the TIA bit specified in the method name.
     */
-    void toggleP0Bit() const { toggleTIABit(TIA::P0, "P0"); }
-    void toggleP1Bit() const { toggleTIABit(TIA::P1, "P1"); }
-    void toggleM0Bit() const { toggleTIABit(TIA::M0, "M0"); }
-    void toggleM1Bit() const { toggleTIABit(TIA::M1, "M1"); }
-    void toggleBLBit() const { toggleTIABit(TIA::BL, "BL"); }
-    void togglePFBit() const { toggleTIABit(TIA::PF, "PF"); }
+    void toggleP0Bit() const { toggleTIABit(P0Bit, "P0"); }
+    void toggleP1Bit() const { toggleTIABit(P1Bit, "P1"); }
+    void toggleM0Bit() const { toggleTIABit(M0Bit, "M0"); }
+    void toggleM1Bit() const { toggleTIABit(M1Bit, "M1"); }
+    void toggleBLBit() const { toggleTIABit(BLBit, "BL"); }
+    void togglePFBit() const { toggleTIABit(PFBit, "PF"); }
+    void toggleHMOVE() const;
     void enableBits(bool enable) const;
 
-#ifdef ATARIVOX_SUPPORT
-    AtariVox *atariVox() { return vox; }
-#endif
+    /**
+      Toggles the TIA 'fixed debug colors' mode.
+    */
+    void toggleFixedColors() const;
 
   private:
-    void toggleTIABit(TIA::TIABit bit, const string& bitname, bool show = true) const;
+    /**
+      Adds the left and right controllers to the console
+    */
+    void setControllers(const string& rommd5);
 
     /**
       Loads a user-defined palette file (from OSystem::paletteFile), filling the
@@ -256,16 +283,19 @@ class Console : public Serializable
     void loadUserPalette();
 
     /**
-      Loads all defined palettes with PAL color-loss data depending
-      on 'state'.
+      Loads all defined palettes with PAL color-loss data, even those that
+      normally can't have it enabled (NTSC), since it's also used for
+      'greying out' the frame in the debugger.
     */
-    void setColorLossPalette(bool state);
+    void setColorLossPalette();
 
     /**
       Returns a pointer to the palette data for the palette currently defined
       by the ROM properties.
     */
     const uInt32* getPalette(int direction) const;
+
+    void toggleTIABit(TIABit bit, const string& bitname, bool show = true) const;
 
   private:
     // Pointer to the osystem object
@@ -277,8 +307,8 @@ class Console : public Serializable
     // Pointer to the event object to use
     Event* myEvent;
 
-    // Pointer to the media source object 
-    MediaSource* myMediaSource;
+    // Pointer to the TIA object 
+    TIA* myTIA;
 
     // Properties for the game
     Properties myProperties;
@@ -296,22 +326,18 @@ class Console : public Serializable
     // A RIOT of my own! (...with apologies to The Clash...)
     M6532 *myRiot;
 
-#ifdef ATARIVOX_SUPPORT
-    AtariVox *vox;
-#endif
-
     // The currently defined display format (NTSC/PAL/SECAM)
     string myDisplayFormat;
 
     // The currently defined display framerate
-    uInt32 myFramerate;
+    float myFramerate;
 
     // Indicates whether an external palette was found and
     // successfully loaded
     bool myUserPaletteDefined;
 
-    // Contains info about this console in string format
-    string myAboutString;
+    // Contains detailed info about this console
+    ConsoleInfo myConsoleInfo;
 
     // Table of RGB values for NTSC, PAL and SECAM
     static uInt32 ourNTSCPalette[256];

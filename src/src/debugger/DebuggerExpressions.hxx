@@ -8,12 +8,12 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: DebuggerExpressions.hxx,v 1.4 2008/03/23 17:43:21 stephena Exp $
+// $Id: DebuggerExpressions.hxx 1724 2009-05-13 13:55:40Z stephena $
 //============================================================================
 
 #ifndef DEBUGGER_EXPRESSIONS_HXX

@@ -1,10 +1,10 @@
-Configure run on So 7. Feb 21:05:12 CET 2010
+Configure run on Di 9. Feb 20:53:26 CET 2010
 
 #include <string.h>
 #include <zlib.h>
 int main(void) { return strcmp(ZLIB_VERSION, zlibVersion()); }
 
-g++ ./stella-conf.cxx -o ./stella-conf -L/usr/local/lib -Wl,-rpath-link,/usr/local/lib -Wl,-rpath,/usr/local/lib -g -lz
+g++ ./stella-conf.cxx -o ./stella-conf -L/usr/local/lib -Wl,-rpath-link,/usr/local/lib -Wl,-rpath,/usr/local/lib -lz
 
 
 #include <string.h>
@@ -12,7 +12,7 @@ g++ ./stella-conf.cxx -o ./stella-conf -L/usr/local/lib -Wl,-rpath-link,/usr/loc
 #include <GL/glu.h>
 int main(void) { return 0; }
 
-g++ ./stella-conf.cxx -o ./stella-conf -L/usr/local/lib -Wl,-rpath-link,/usr/local/lib -Wl,-rpath,/usr/local/lib -g
+g++ ./stella-conf.cxx -o ./stella-conf -L/usr/local/lib -Wl,-rpath-link,/usr/local/lib -Wl,-rpath,/usr/local/lib
 ./stella-conf.cxx:2:19: error: GL/gl.h: No such file or directory
 ./stella-conf.cxx:3:20: error: GL/glu.h: No such file or directory
 

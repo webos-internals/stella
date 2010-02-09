@@ -8,17 +8,16 @@
 // MM     MM 66  66 55  55 00  00 22
 // MM     MM  6666   5555   0000  222222
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: NullDev.cxx,v 1.7 2008/02/06 13:45:22 stephena Exp $
+// $Id: NullDev.cxx 1849 2009-08-05 16:05:34Z stephena $
 //============================================================================
 
-#include "NullDev.hxx"
 #include "Serializer.hxx"
-#include "Deserializer.hxx"
+#include "NullDev.hxx"
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 NullDevice::NullDevice()
@@ -61,7 +60,7 @@ bool NullDevice::save(Serializer& out) const
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-bool NullDevice::load(Deserializer& in)
+bool NullDevice::load(Serializer& in)
 {
   return true;
 }

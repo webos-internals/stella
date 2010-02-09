@@ -8,12 +8,12 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: SoundSDL.cxx,v 1.40 2008/02/06 13:45:19 stephena Exp $
+// $Id: SoundSDL.cxx 1862 2009-08-27 22:59:14Z stephena $
 //============================================================================
 
 #ifdef SOUND_SUPPORT
@@ -25,11 +25,15 @@
 
 #include "TIASnd.hxx"
 #include "FrameBuffer.hxx"
-#include "Serializer.hxx"
-#include "Deserializer.hxx"
 #include "Settings.hxx"
 #include "System.hxx"
 #include "OSystem.hxx"
+
+#include "Console.hxx"
+#include "AtariVox.hxx"
+#ifdef SPEAKJET_EMULATION
+  #include "SpeakJet.hxx"
+#endif
 
 #include "SoundSDL.hxx"
 
@@ -39,7 +43,7 @@ SoundSDL::SoundSDL(OSystem* osystem)
     myIsEnabled(osystem->settings().getBool("sound")),
     myIsInitializedFlag(false),
     myLastRegisterSetCycle(0),
-    myDisplayFrameRate(60),
+    myDisplayFrameRate(60.0),
     myNumChannels(1),
     myFragmentSizeLogBase2(0),
     myIsMuted(false),
@@ -62,7 +66,7 @@ void SoundSDL::setEnabled(bool state)
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void SoundSDL::initialize()
+void SoundSDL::open()
 {
   // Check whether to start the sound subsystem
   if(!myIsEnabled)
@@ -77,7 +81,7 @@ void SoundSDL::initialize()
   myRegWriteQueue.clear();
   myTIASound.reset();
 
-  if(!((SDL_WasInit(SDL_INIT_AUDIO) & SDL_INIT_AUDIO) > 0))
+  if(SDL_WasInit(SDL_INIT_AUDIO) == 0)
   {
     myIsInitializedFlag = false;
     myIsMuted = false;
@@ -192,12 +196,6 @@ void SoundSDL::mute(bool state)
 {
   if(myIsInitializedFlag)
   {
-    // Ignore multiple calls to do the same thing
-    if(myIsMuted == state)
-    {
-      return;
-    }
-
     myIsMuted = state;
 
     SDL_PauseAudio(myIsMuted ? 1 : 0);
@@ -275,11 +273,10 @@ void SoundSDL::setChannels(uInt32 channels)
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void SoundSDL::setFrameRate(uInt32 framerate)
+void SoundSDL::setFrameRate(float framerate)
 {
-  // FIXME, we should clear out the queue or adjust the values in it
+  // FIXME - should we clear out the queue or adjust the values in it?
   myDisplayFrameRate = framerate;
-  myLastRegisterSetCycle = 0;
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -296,7 +293,8 @@ void SoundSDL::set(uInt16 addr, uInt8 value, Int32 cycle)
   // the sound to "scale" correctly, we have to know the games real frame 
   // rate (e.g., 50 or 60) and the currently emulated frame rate. We use these
   // values to "scale" the time before the register change occurs.
-  delta = delta * (myDisplayFrameRate / (double)myOSystem->frameRate());
+// FIXME - this always results in 1.0, so we don't really need it
+//  delta = delta * (myDisplayFrameRate / myOSystem->frameRate());
   RegWrite info;
   info.addr = addr;
   info.value = value;
@@ -405,8 +403,9 @@ void SoundSDL::callback(void* udata, uInt8* stream, int len)
 {
   SoundSDL* sound = (SoundSDL*)udata;
   sound->processFragment(stream, (Int32)len);
-#ifdef ATARIVOX_SUPPORT
-  cerr << "SoundSDL::callback(): len==" << len << endl;
+
+#ifdef SPEAKJET_EMULATION
+//  cerr << "SoundSDL::callback(): len==" << len << endl;
 
   // See if we need sound from the AtariVox
   AtariVox *vox = sound->myOSystem->console().atariVox();
@@ -428,9 +427,49 @@ void SoundSDL::callback(void* udata, uInt8* stream, int len)
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-bool SoundSDL::load(Deserializer& in)
+bool SoundSDL::save(Serializer& out) const
 {
-  string device = "TIASound";
+  const string& device = name();
+
+  try
+  {
+    out.putString(device);
+
+    uInt8 reg1 = 0, reg2 = 0, reg3 = 0, reg4 = 0, reg5 = 0, reg6 = 0;
+
+    // Only get the TIA sound registers if sound is enabled
+    if(myIsInitializedFlag)
+    {
+      reg1 = myTIASound.get(0x15);
+      reg2 = myTIASound.get(0x16);
+      reg3 = myTIASound.get(0x17);
+      reg4 = myTIASound.get(0x18);
+      reg5 = myTIASound.get(0x19);
+      reg6 = myTIASound.get(0x1a);
+    }
+
+    out.putByte((char)reg1);
+    out.putByte((char)reg2);
+    out.putByte((char)reg3);
+    out.putByte((char)reg4);
+    out.putByte((char)reg5);
+    out.putByte((char)reg6);
+
+    out.putInt(myLastRegisterSetCycle);
+  }
+  catch(const char* msg)
+  {
+    cerr << "ERROR: SoundSDL::save" << endl << "  " << msg << endl;
+    return false;
+  }
+
+  return true;
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+bool SoundSDL::load(Serializer& in)
+{
+  const string& device = name();
 
   try
   {
@@ -459,62 +498,12 @@ bool SoundSDL::load(Deserializer& in)
       myTIASound.set(0x18, reg4);
       myTIASound.set(0x19, reg5);
       myTIASound.set(0x1a, reg6);
-      SDL_PauseAudio(0);
+      if(!myIsMuted) SDL_PauseAudio(0);
     }
   }
-  catch(char *msg)
+  catch(const char* msg)
   {
-    cerr << msg << endl;
-    return false;
-  }
-  catch(...)
-  {
-    cerr << "Unknown error in load state for " << device << endl;
-    return false;
-  }
-
-  return true;
-}
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-bool SoundSDL::save(Serializer& out)
-{
-  string device = "TIASound";
-
-  try
-  {
-    out.putString(device);
-
-    uInt8 reg1 = 0, reg2 = 0, reg3 = 0, reg4 = 0, reg5 = 0, reg6 = 0;
-
-    // Only get the TIA sound registers if sound is enabled
-    if(myIsInitializedFlag)
-    {
-      reg1 = myTIASound.get(0x15);
-      reg2 = myTIASound.get(0x16);
-      reg3 = myTIASound.get(0x17);
-      reg4 = myTIASound.get(0x18);
-      reg5 = myTIASound.get(0x19);
-      reg6 = myTIASound.get(0x1a);
-    }
-
-    out.putByte((char)reg1);
-    out.putByte((char)reg2);
-    out.putByte((char)reg3);
-    out.putByte((char)reg4);
-    out.putByte((char)reg5);
-    out.putByte((char)reg6);
-
-    out.putInt(myLastRegisterSetCycle);
-  }
-  catch(char *msg)
-  {
-    cerr << msg << endl;
-    return false;
-  }
-  catch(...)
-  {
-    cerr << "Unknown error in save state for " << device << endl;
+    cerr << "ERROR: SoundSDL::load" << endl << "  " << msg << endl;
     return false;
   }
 

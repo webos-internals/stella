@@ -8,15 +8,16 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: CartFASC.cxx,v 1.15 2008/02/06 13:45:21 stephena Exp $
+// $Id: CartFASC.cxx 1862 2009-08-27 22:59:14Z stephena $
 //============================================================================
 
 #include <cassert>
+#include <cstring>
 
 #include "Random.hxx"
 #include "System.hxx"
@@ -26,17 +27,10 @@
 CartridgeFASC::CartridgeFASC(const uInt8* image)
 {
   // Copy the ROM image into my buffer
-  for(uInt32 addr = 0; addr < 12288; ++addr)
-  {
-    myImage[addr] = image[addr];
-  }
+  memcpy(myImage, image, 12288);
 
-  // Initialize RAM with random values
-  class Random random;
-  for(uInt32 i = 0; i < 256; ++i)
-  {
-    myRAM[i] = random.next();
-  }
+  // This cart contains 256 bytes extended RAM @ 0x1000
+  registerRamArea(0x1000, 256, 0x100, 0x00);
 }
  
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -47,6 +41,11 @@ CartridgeFASC::~CartridgeFASC()
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void CartridgeFASC::reset()
 {
+  // Initialize RAM with random values
+  class Random random;
+  for(uInt32 i = 0; i < 256; ++i)
+    myRAM[i] = random.next();
+
   // Upon reset we switch to bank 2
   bank(2);
 }
@@ -96,7 +95,7 @@ void CartridgeFASC::install(System& system)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 uInt8 CartridgeFASC::peek(uInt16 address)
 {
-  address = address & 0x0FFF;
+  address &= 0x0FFF;
 
   // Switch banks if necessary
   switch(address)
@@ -121,21 +120,23 @@ uInt8 CartridgeFASC::peek(uInt16 address)
   }
 
   // Reading from the write port triggers an unwanted write
+  // The value written to RAM is somewhat undefined, so we use 0
   // Thanks to Kroko of AtariAge for this advice and code idea
   if(address < 0x0100)  // Write port is at 0xF000 - 0xF100 (256 bytes)
   {
-    return myRAM[address & 0x00FF] = 0;
+    if(myBankLocked) return 0;
+    else return myRAM[address] = 0;
   }  
   else
   {
-    return myImage[myCurrentBank * 4096 + address];
+    return myImage[(myCurrentBank << 12) + address];
   }  
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void CartridgeFASC::poke(uInt16 address, uInt8)
 {
-  address = address & 0x0FFF;
+  address &= 0x0FFF;
 
   // Switch banks if necessary
   switch(address)
@@ -167,11 +168,11 @@ void CartridgeFASC::poke(uInt16 address, uInt8)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void CartridgeFASC::bank(uInt16 bank)
 {
-  if(bankLocked) return;
+  if(myBankLocked) return;
 
   // Remember what bank we're in
   myCurrentBank = bank;
-  uInt16 offset = myCurrentBank * 4096;
+  uInt16 offset = myCurrentBank << 12;
   uInt16 shift = mySystem->pageShift();
   uInt16 mask = mySystem->pageMask();
 
@@ -204,8 +205,7 @@ int CartridgeFASC::bankCount()
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 bool CartridgeFASC::patch(uInt16 address, uInt8 value)
 {
-  address = address & 0x0FFF;
-  myImage[myCurrentBank * 4096 + address] = value;
+  myImage[(myCurrentBank << 12) + (address & 0x0FFF)] = value;
   return true;
 } 
 
@@ -219,7 +219,7 @@ uInt8* CartridgeFASC::getImage(int& size)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 bool CartridgeFASC::save(Serializer& out) const
 {
-  string cart = name();
+  const string& cart = name();
 
   try
   {
@@ -234,12 +234,7 @@ bool CartridgeFASC::save(Serializer& out) const
   }
   catch(const char* msg)
   {
-    cerr << msg << endl;
-    return false;
-  }
-  catch(...)
-  {
-    cerr << "Unknown error in save state for " << cart << endl;
+    cerr << "ERROR: CartridgeFASC::save" << endl << "  " << msg << endl;
     return false;
   }
 
@@ -247,9 +242,9 @@ bool CartridgeFASC::save(Serializer& out) const
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-bool CartridgeFASC::load(Deserializer& in)
+bool CartridgeFASC::load(Serializer& in)
 {
-  string cart = name();
+  const string& cart = name();
 
   try
   {
@@ -264,12 +259,7 @@ bool CartridgeFASC::load(Deserializer& in)
   }
   catch(const char* msg)
   {
-    cerr << msg << endl;
-    return false;
-  }
-  catch(...)
-  {
-    cerr << "Unknown error in load state for " << cart << endl;
+    cerr << "ERROR: CartridgeFASC::load" << endl << "  " << msg << endl;
     return false;
   }
 

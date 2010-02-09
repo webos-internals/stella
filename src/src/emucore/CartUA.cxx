@@ -8,15 +8,16 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: CartUA.cxx,v 1.12 2008/02/06 13:45:21 stephena Exp $
+// $Id: CartUA.cxx 1862 2009-08-27 22:59:14Z stephena $
 //============================================================================
 
 #include <cassert>
+#include <cstring>
 
 #include "System.hxx"
 #include "CartUA.hxx"
@@ -25,10 +26,7 @@
 CartridgeUA::CartridgeUA(const uInt8* image)
 {
   // Copy the ROM image into my buffer
-  for(uInt32 addr = 0; addr < 8192; ++addr)
-  {
-    myImage[addr] = image[addr];
-  }
+  memcpy(myImage, image, 8192);
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -72,7 +70,7 @@ void CartridgeUA::install(System& system)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 uInt8 CartridgeUA::peek(uInt16 address)
 {
-  address = address & 0x1FFF;
+//  address &= 0x1FFF;  TODO - is this needed here?
 
   // Switch banks if necessary
   switch(address)
@@ -104,7 +102,7 @@ uInt8 CartridgeUA::peek(uInt16 address)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void CartridgeUA::poke(uInt16 address, uInt8 value)
 {
-  address = address & 0x1FFF;
+  address &= 0x1FFF;
 
   // Switch banks if necessary
   switch(address)
@@ -132,13 +130,12 @@ void CartridgeUA::poke(uInt16 address, uInt8 value)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void CartridgeUA::bank(uInt16 bank)
 { 
-  if(bankLocked) return;
+  if(myBankLocked) return;
 
   // Remember what bank we're in
   myCurrentBank = bank;
-  uInt16 offset = myCurrentBank * 4096;
+  uInt16 offset = myCurrentBank << 12;
   uInt16 shift = mySystem->pageShift();
-//  uInt16 mask = mySystem->pageMask();
 
   // Setup the page access methods for the current bank
   System::PageAccess access;
@@ -168,9 +165,7 @@ int CartridgeUA::bankCount()
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 bool CartridgeUA::patch(uInt16 address, uInt8 value)
 {
-  address &= 0x0fff;
-  myImage[myCurrentBank * 4096] = value;
-  bank(myCurrentBank); // TODO: see if this is really necessary
+  myImage[(myCurrentBank << 12) + (address & 0x0FFF)] = value;
   return true;
 } 
 
@@ -184,7 +179,7 @@ uInt8* CartridgeUA::getImage(int& size)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 bool CartridgeUA::save(Serializer& out) const
 {
-  string cart = name();
+  const string& cart = name();
 
   try
   {
@@ -194,12 +189,7 @@ bool CartridgeUA::save(Serializer& out) const
   }
   catch(const char* msg)
   {
-    cerr << msg << endl;
-    return false;
-  }
-  catch(...)
-  {
-    cerr << "Unknown error in save state for " << cart << endl;
+    cerr << "ERROR: CartridgeUA::save" << endl << "  " << msg << endl;
     return false;
   }
 
@@ -207,9 +197,9 @@ bool CartridgeUA::save(Serializer& out) const
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-bool CartridgeUA::load(Deserializer& in)
+bool CartridgeUA::load(Serializer& in)
 {
-  string cart = name();
+  const string& cart = name();
 
   try
   {
@@ -220,12 +210,7 @@ bool CartridgeUA::load(Deserializer& in)
   }
   catch(const char* msg)
   {
-    cerr << msg << endl;
-    return false;
-  }
-  catch(...)
-  {
-    cerr << "Unknown error in load state for " << cart << endl;
+    cerr << "ERROR: CartridgeUA::load" << endl << "  " << msg << endl;
     return false;
   }
 

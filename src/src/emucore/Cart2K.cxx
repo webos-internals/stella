@@ -8,32 +8,53 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: Cart2K.cxx,v 1.12 2008/02/06 13:45:20 stephena Exp $
+// $Id: Cart2K.cxx 1862 2009-08-27 22:59:14Z stephena $
 //============================================================================
 
 #include <cassert>
+#include <cstring>
 
 #include "System.hxx"
 #include "Cart2K.hxx"
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Cartridge2K::Cartridge2K(const uInt8* image)
+Cartridge2K::Cartridge2K(const uInt8* image, uInt32 size)
 {
+  // Size can be a maximum of 2K
+  if(size > 2048) size = 2048;
+
+  // Set image size to closest power-of-two for the given size
+  mySize = 1;
+  while(mySize < size)
+    mySize <<= 1;
+
+  // The smallest addressable area by Stella is 64 bytes
+  // This should really be read from the System, but for now I'm going
+  // to cheat a little and hard-code it to 64 (aka 2^6)
+  if(mySize < 64)
+    mySize = 64;
+
+  // Initialize ROM with illegal 6502 opcode that causes a real 6502 to jam
+  myImage = new uInt8[mySize];
+  memset(myImage, 0x02, mySize);
+
   // Copy the ROM image into my buffer
-  for(uInt32 addr = 0; addr < 2048; ++addr)
-  {
-    myImage[addr] = image[addr];
-  }
+  memcpy(myImage, image, size);
+
+  // Set mask for accessing the image buffer
+  // This is guaranteed to work, as mySize is a power of two
+  myMask = mySize - 1;
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Cartridge2K::~Cartridge2K()
 {
+  delete[] myImage;
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -51,14 +72,13 @@ void Cartridge2K::install(System& system)
   // Make sure the system we're being installed in has a page size that'll work
   assert((0x1000 & mask) == 0);
 
-  System::PageAccess access;
-  access.directPokeBase = 0;
-  access.device = this;
-
   // Map ROM image into the system
+  System::PageAccess access;
   for(uInt32 address = 0x1000; address < 0x2000; address += (1 << shift))
   {
-    access.directPeekBase = &myImage[address & 0x07FF];
+    access.device = this;
+    access.directPeekBase = &myImage[address & myMask];
+    access.directPokeBase = 0;
     mySystem->setPageAccess(address >> shift, access);
   }
 }
@@ -66,7 +86,7 @@ void Cartridge2K::install(System& system)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 uInt8 Cartridge2K::peek(uInt16 address)
 {
-  return myImage[address & 0x07FF];
+  return myImage[address & myMask];
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -97,21 +117,21 @@ int Cartridge2K::bankCount()
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 bool Cartridge2K::patch(uInt16 address, uInt8 value)
 {
-  myImage[address & 0x07FF] = value;
+  myImage[address & myMask] = value;
   return true;
 } 
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 uInt8* Cartridge2K::getImage(int& size)
 {
-  size = 2048;
+  size = mySize;
   return &myImage[0];
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 bool Cartridge2K::save(Serializer& out) const
 {
-  string cart = name();
+  const string& cart = name();
 
   try
   {
@@ -119,12 +139,7 @@ bool Cartridge2K::save(Serializer& out) const
   }
   catch(const char* msg)
   {
-    cerr << msg << endl;
-    return false;
-  }
-  catch(...)
-  {
-    cerr << "Unknown error in save state for " << cart << endl;
+    cerr << "ERROR: Cartridge2K::save" << endl << "  " << msg << endl;
     return false;
   }
 
@@ -132,9 +147,9 @@ bool Cartridge2K::save(Serializer& out) const
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-bool Cartridge2K::load(Deserializer& in)
+bool Cartridge2K::load(Serializer& in)
 {
-  string cart = name();
+  const string& cart = name();
 
   try
   {
@@ -143,12 +158,7 @@ bool Cartridge2K::load(Deserializer& in)
   }
   catch(const char* msg)
   {
-    cerr << msg << endl;
-    return false;
-  }
-  catch(...)
-  {
-    cerr << "Unknown error in load state for " << cart << endl;
+    cerr << "ERROR: Cartridge2K::load" << endl << "  " << msg << endl;
     return false;
   }
 

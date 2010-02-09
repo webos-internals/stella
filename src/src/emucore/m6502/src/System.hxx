@@ -8,12 +8,12 @@
 // MM     MM 66  66 55  55 00  00 22
 // MM     MM  6666   5555   0000  222222
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: System.hxx,v 1.19 2008/02/19 12:33:07 stephena Exp $
+// $Id: System.hxx 1849 2009-08-05 16:05:34Z stephena $
 //============================================================================
 
 #ifndef SYSTEM_HXX
@@ -47,7 +47,7 @@ class NullDevice;
         dynamic code for that page of memory.
 
   @author  Bradford W. Mott
-  @version $Id: System.hxx,v 1.19 2008/02/19 12:33:07 stephena Exp $
+  @version $Id: System.hxx 1849 2009-08-05 16:05:34Z stephena $
 */
 class System : public Serializable
 {
@@ -307,12 +307,12 @@ class System : public Serializable
     bool save(Serializer& out) const;
 
     /**
-      Load the current state of this system from the given Deserializer.
+      Load the current state of this system from the given Serializer.
 
-      @param in  The Deserializer object to use
+      @param in  The Serializer object to use
       @return  False on any errors, else true
     */
-    bool load(Deserializer& in);
+    bool load(Serializer& in);
 
     /**
       Get a descriptor for the device name (used in error checking).

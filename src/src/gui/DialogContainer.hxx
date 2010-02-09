@@ -8,12 +8,12 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: DialogContainer.hxx,v 1.24 2008/02/06 13:45:23 stephena Exp $
+// $Id: DialogContainer.hxx 1823 2009-07-01 14:39:01Z stephena $
 //============================================================================
 
 #ifndef DIALOG_CONTAINER_HXX
@@ -36,7 +36,7 @@ class OSystem;
   a stack, and handles their events.
 
   @author  Stephen Anthony
-  @version $Id: DialogContainer.hxx,v 1.24 2008/02/06 13:45:23 stephena Exp $
+  @version $Id: DialogContainer.hxx 1823 2009-07-01 14:39:01Z stephena $
 */
 class DialogContainer
 {
@@ -60,7 +60,7 @@ class DialogContainer
 
       @param time  The current time in microseconds
     */
-    void updateTime(uInt32 time);
+    void updateTime(uInt64 time);
 
     /**
       Handle a keyboard event.
@@ -119,14 +119,9 @@ class DialogContainer
     void handleJoyHatEvent(int stick, int hat, int value);
 
     /**
-      Handle a resize event.
+      Draw the stack of menus (full indicates to redraw all items).
     */
-    void handleResizeEvent();
-
-    /**
-      Draw the stack of menus.
-    */
-    void draw();
+    void draw(bool full = false);
 
     /**
       Add a dialog box to the stack.
@@ -142,11 +137,6 @@ class DialogContainer
       Reset dialog stack to the main configuration menu.
     */
     void reStack();
-
-    /**
-      Redraw all dialogs on the stack.
-    */
-    void refresh() { myRefreshFlag = true; }
 
     /**
       Return the bottom-most dialog of this container.
@@ -169,10 +159,7 @@ class DialogContainer
     };
 
     // Indicates the most current time (in milliseconds) as set by updateTime()
-    int myTime;
-
-    // Indicates a full refresh of all dialogs is required
-    bool myRefreshFlag;
+    uInt64 myTime;
 
     // For continuous 'key down' events
     struct {
@@ -180,7 +167,7 @@ class DialogContainer
       int keycode;
       int flags;
     } myCurrentKeyDown;
-    int myKeyRepeatTime;
+    uInt64 myKeyRepeatTime;
 
     // For continuous 'mouse down' events
     struct {
@@ -188,14 +175,14 @@ class DialogContainer
       int y;
       int button;
     } myCurrentMouseDown;
-    int myClickRepeatTime;
+    uInt64 myClickRepeatTime;
 	
     // For continuous 'joy button down' events
     struct {
       int stick;
       int button;
     } myCurrentButtonDown;
-    int myButtonRepeatTime;
+    uInt64 myButtonRepeatTime;
 
     // For continuous 'joy axis down' events
     struct {
@@ -203,7 +190,7 @@ class DialogContainer
       int axis;
       int value;
     } myCurrentAxisDown;
-    int myAxisRepeatTime;
+    uInt64 myAxisRepeatTime;
 
     // For continuous 'joy hat' events
     struct {
@@ -211,13 +198,13 @@ class DialogContainer
       int hat;
       int value;
     } myCurrentHatDown;
-    int myHatRepeatTime;
+    uInt64 myHatRepeatTime;
 
     // Position and time of last mouse click (used to detect double clicks)
     struct {
-      int x, y;   // Position of mouse when the click occured
-      int time;   // Time
-      int count;  // How often was it already pressed?
+      int x, y;    // Position of mouse when the click occurred
+      int count;   // How often was it already pressed?
+      uInt64 time; // Time
     } myLastClick;
 };
 

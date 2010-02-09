@@ -1,4 +1,3 @@
-
 //============================================================================
 //
 //   SSSS    tt          lll  lll       
@@ -9,21 +8,21 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: AtariVox.hxx,v 1.8 2008/02/06 13:45:20 stephena Exp $
+// $Id: AtariVox.hxx 1738 2009-05-21 22:39:32Z stephena $
 //============================================================================
-
-#ifdef ATARIVOX_SUPPORT
 
 #ifndef ATARIVOX_HXX
 #define ATARIVOX_HXX
 
+class SerialPort;
+class MT24LC256;
+
 #include "Control.hxx"
-#include "SpeakJet.hxx"
 
 /**
   Richard Hutchinson's AtariVox "controller": A speech synthesizer and
@@ -33,7 +32,7 @@
   driver code.
 
   @author  B. Watson
-  @version $Id: AtariVox.hxx,v 1.8 2008/02/06 13:45:20 stephena Exp $
+  @version $Id: AtariVox.hxx 1738 2009-05-21 22:39:32Z stephena $
 */
 class AtariVox : public Controller
 {
@@ -41,10 +40,16 @@ class AtariVox : public Controller
     /**
       Create a new AtariVox controller plugged into the specified jack
 
-      @param jack The jack the controller is plugged into
-      @param event The event object to use for events
+      @param jack       The jack the controller is plugged into
+      @param event      The event object to use for events
+      @param system     The system using this controller
+      @param port       The serial port object
+      @param portname   Name of the port used for reading and writing
+      @param eepromfile The file containing the EEPROM data
     */
-    AtariVox(Jack jack, const Event& event);
+    AtariVox(Jack jack, const Event& event, const System& system,
+             const SerialPort& port, const string& portname,
+             const string& eepromfile);
 
     /**
       Destructor
@@ -61,17 +66,6 @@ class AtariVox : public Controller
     virtual bool read(DigitalPin pin);
 
     /**
-      Read the resistance at the specified analog pin for this controller.
-      The returned value is the resistance measured in ohms.
-
-      The AtariVox doesn't use the analog pins.
-
-      @param pin The pin of the controller jack to read
-      @return The resistance at the specified pin
-    */
-    virtual Int32 read(AnalogPin pin);
-
-    /**
       Write the given value to the specified digital pin for this
       controller.  Writing is only allowed to the pins associated
       with the PIA.  Therefore you cannot write to pin six.
@@ -81,25 +75,33 @@ class AtariVox : public Controller
     */
     virtual void write(DigitalPin pin, bool value);
 
-    SpeakJet* getSpeakJet() { return mySpeakJet; }
+    /**
+      Update the entire digital and analog pin state according to the
+      events currently set.
+    */
+    virtual void update() { }
+
+    /**
+      Notification method invoked by the system right before the
+      system resets its cycle counter to zero.  It may be necessary 
+      to override this method for devices that remember cycle counts.
+    */
+    virtual void systemCyclesReset();
+
+    virtual string about() const;
 
   private:
    void clockDataIn(bool value);
    void shiftIn(bool value);
 
   private:
-    // How far off (in CPU cycles) can each write occur from when it's
-    // supposed to happen? Eventually, this will become a user-settable
-    // property... or it may turn out to be unnecessary.
-    enum { TIMING_SLOP = 0 };
+    // Instance of an real serial port on the system
+    // Assuming there's a real AtariVox attached, we can send SpeakJet
+    // bytes directly to it
+    SerialPort& mySerialPort;
 
-    // Instance of SpeakJet which will actually do the talking for us.
-    // In the future, we'll support both real and emulated SpeakJet
-    // chips; for now we only emulate it.
-    SpeakJet *mySpeakJet;
-
-    // State of the output pins
-    uInt8 myPinState;
+    // The EEPROM used in the AtariVox
+    MT24LC256* myEEPROM;
 
     // How many bits have been shifted into the shift register?
     uInt8 myShiftCount;
@@ -115,8 +117,9 @@ class AtariVox : public Controller
     // driver code sends data at 62 CPU cycles per bit, which is
     // "close enough".
     uInt32 myLastDataWriteCycle;
+
+    // Holds information concerning serial port usage
+    string myAboutString;
 };
 
 #endif
-
-#endif  // ATARIVOX_SUPPORT

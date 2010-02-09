@@ -8,21 +8,20 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: Sound.hxx,v 1.24 2008/02/06 13:45:22 stephena Exp $
+// $Id: Sound.hxx 1849 2009-08-05 16:05:34Z stephena $
 //============================================================================
 
 #ifndef SOUND_HXX
 #define SOUND_HXX
 
 class OSystem;
-class Serializer;
-class Deserializer;
 
+#include "Serializable.hxx"
 #include "bspf.hxx"
 
 /**
@@ -30,9 +29,9 @@ class Deserializer;
   It has no functionality whatsoever.
 
   @author Stephen Anthony
-  @version $Id: Sound.hxx,v 1.24 2008/02/06 13:45:22 stephena Exp $
+  @version $Id: Sound.hxx 1849 2009-08-05 16:05:34Z stephena $
 */
-class Sound
+class Sound : public Serializable
 {
   public:
     /**
@@ -75,17 +74,17 @@ class Sound
 
       @param framerate The base framerate depending on NTSC or PAL ROM
     */
-    virtual void setFrameRate(uInt32 framerate) = 0;
+    virtual void setFrameRate(float framerate) = 0;
 
     /**
-      Initializes the sound device.  This must be called before any
-      calls are made to derived methods.
+      Start the sound system, initializing it if necessary.  This must be
+      called before any calls are made to derived methods.
     */
-    virtual void initialize() = 0;
+    virtual void open() = 0;
 
     /**
-      Should be called to close the sound device.  Once called the sound
-      device can be started again using the initialize method.
+      Should be called to stop the sound system.  Once called the sound
+      device can be started again using the ::open() method.
     */
     virtual void close() = 0;
 
@@ -133,23 +132,6 @@ class Sound
                         amount based on the direction (1 = increase, -1 =decrease)
     */
     virtual void adjustVolume(Int8 direction) = 0;
-
-public:
-    /**
-      Loads the current state of this device from the given Deserializer.
-
-      @param in The deserializer device to load from.
-      @return The result of the load.  True on success, false on failure.
-    */
-    virtual bool load(Deserializer& in) = 0;
-
-    /**
-      Saves the current state of this device to the given Serializer.
-
-      @param out The serializer device to save to.
-      @return The result of the save.  True on success, false on failure.
-    */
-    virtual bool save(Serializer& out) = 0;
 
   protected:
     // The OSystem for this sound object

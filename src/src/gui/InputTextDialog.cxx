@@ -8,12 +8,12 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: InputTextDialog.cxx,v 1.20 2008/02/06 13:45:23 stephena Exp $
+// $Id: InputTextDialog.cxx 1724 2009-05-13 13:55:40Z stephena $
 //
 //   Based on code from ScummVM - Scumm Interpreter
 //   Copyright (C) 2002-2004 The ScummVM project
@@ -22,6 +22,7 @@
 #include "bspf.hxx"
 
 #include "Dialog.hxx"
+#include "DialogContainer.hxx"
 #include "EditTextWidget.hxx"
 #include "GuiObject.hxx"
 #include "OSystem.hxx"
@@ -31,21 +32,22 @@
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 InputTextDialog::InputTextDialog(GuiObject* boss, const GUI::Font& font,
-                                 const StringList& labels, int x, int y)
-  : Dialog(boss->instance(), boss->parent(), x, y, 16, 16),
+                                 const StringList& labels)
+  : Dialog(&boss->instance(), &boss->parent(), 0, 0, 16, 16),
     CommandSender(boss),
-    myErrorFlag(false)
+    myEnableCenter(false),
+    myErrorFlag(false),
+    myXOrig(0),
+    myYOrig(0)
 {
   const int fontWidth  = font.getMaxCharWidth(),
             fontHeight = font.getFontHeight(),
-            lineHeight = font.getLineHeight(),
-            bwidth  = font.getStringWidth("  Cancel  "),
-            bheight = font.getLineHeight() + 4;
+            lineHeight = font.getLineHeight();
   unsigned int xpos, ypos, i, lwidth = 0, maxIdx = 0;
   WidgetArray wid;
 
   // Calculate real dimensions
-  _w = fontWidth * 25;
+  _w = fontWidth * 30;
   _h = lineHeight * 4 + labels.size() * (lineHeight + 5);
 
   // Determine longest label
@@ -82,34 +84,55 @@ InputTextDialog::InputTextDialog(GuiObject* boss, const GUI::Font& font,
                                  "", kTextAlignCenter);
   myTitle->setTextColor(kTextColorEm);
 
-  ButtonWidget* b;
-#ifndef MAC_OSX
-  b = new ButtonWidget(this, font, _w - 2 * (bwidth + 10), _h - bheight - 10,
-                   bwidth, bheight, "OK", kAcceptCmd);
-  wid.push_back(b);
-  addOKWidget(b);
-  b = new ButtonWidget(this, font, _w - (bwidth + 10), _h - bheight - 10,
-                   bwidth, bheight, "Cancel", kCloseCmd);
-  wid.push_back(b);
-  addCancelWidget(b);
-#else
-  b = new ButtonWidget(this, font, _w - 2 * (bwidth + 10), _h - bheight - 10,
-                   bwidth, bheight, "Cancel", kCloseCmd);
-  wid.push_back(b);
-  addCancelWidget(b);
-  b = new ButtonWidget(this, font, _w - (bwidth + 10), _h - bheight - 10,
-                   bwidth, bheight, "OK", kAcceptCmd);
-  wid.push_back(b);
-  addOKWidget(b);
-#endif
-
   addToFocusList(wid);
+
+  // Add OK and Cancel buttons
+  wid.clear();
+  addOKCancelBGroup(wid, font);
+  addBGroupToFocusList(wid);
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 InputTextDialog::~InputTextDialog()
 {
   myInput.clear();
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void InputTextDialog::show()
+{
+  myEnableCenter = true;
+  parent().addDialog(this);
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void InputTextDialog::show(uInt32 x, uInt32 y)
+{
+  myXOrig = x;
+  myYOrig = y;
+  myEnableCenter = false;
+  parent().addDialog(this);
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void InputTextDialog::center()
+{
+  if(!myEnableCenter)
+  {
+    // Make sure the menu is exactly where it should be, in case the image
+    // offset has changed
+    const GUI::Rect& image = instance().frameBuffer().imageRect();
+    uInt32 x = image.x() + myXOrig;
+    uInt32 y = image.y() + myYOrig;
+    uInt32 tx = image.x() + image.width();
+    uInt32 ty = image.y() + image.height();
+    if(x + _w > tx) x -= (x + _w - tx);
+    if(y + _h > ty) y -= (y + _h - ty);
+
+    surface().setPos(x, y);
+  }
+  else
+    Dialog::center();
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -146,9 +169,9 @@ void InputTextDialog::setFocus(int idx)
 void InputTextDialog::handleCommand(CommandSender* sender, int cmd,
                                     int data, int id)
 {
-  switch (cmd)
+  switch(cmd)
   {
-    case kAcceptCmd:
+    case kOKCmd:
     case kEditAcceptCmd:
     {
       // Send a signal to the calling class that a selection has been made

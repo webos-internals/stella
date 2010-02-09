@@ -8,20 +8,18 @@
 // MM     MM 66  66 55  55 00  00 22
 // MM     MM  6666   5555   0000  222222
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: NullDev.hxx,v 1.7 2008/02/06 13:45:22 stephena Exp $
+// $Id: NullDev.hxx 1849 2009-08-05 16:05:34Z stephena $
 //============================================================================
 
 #ifndef NULLDEVICE_HXX
 #define NULLDEVICE_HXX
 
 class System;
-class Serializer;
-class Deserializer;
 
 #include "bspf.hxx"
 #include "Device.hxx"
@@ -32,7 +30,7 @@ class Deserializer;
   holes in the address space (i.e. no real device attached). 
  
   @author  Bradford W. Mott
-  @version $Id: NullDev.hxx,v 1.7 2008/02/06 13:45:22 stephena Exp $
+  @version $Id: NullDev.hxx 1849 2009-08-05 16:05:34Z stephena $
 */
 class NullDevice : public Device
 {
@@ -70,12 +68,12 @@ class NullDevice : public Device
     bool save(Serializer& out) const;
 
     /**
-      Load the current state of this device from the given Deserializer.
+      Load the current state of this device from the given Serializer.
 
-      @param in  The Deserializer object to use
+      @param in  The Serializer object to use
       @return  False on any errors, else true
     */
-    bool load(Deserializer& in);
+    bool load(Serializer& in);
 
     /**
       Get a descriptor for the device name (used in error checking).

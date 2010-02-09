@@ -8,12 +8,12 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: CartF8.hxx,v 1.12 2008/02/06 13:45:21 stephena Exp $
+// $Id: CartF8.hxx 1849 2009-08-05 16:05:34Z stephena $
 //============================================================================
 
 #ifndef CARTRIDGEF8_HXX
@@ -29,7 +29,7 @@ class System;
   are two 4K banks.
 
   @author  Bradford W. Mott
-  @version $Id: CartF8.hxx,v 1.12 2008/02/06 13:45:21 stephena Exp $
+  @version $Id: CartF8.hxx 1849 2009-08-05 16:05:34Z stephena $
 */
 class CartridgeF8 : public Cartridge
 {
@@ -38,9 +38,9 @@ class CartridgeF8 : public Cartridge
       Create a new cartridge using the specified image
 
       @param image     Pointer to the ROM image
-      @param swapbanks Whether to swap the startup bank
+      @param startlow  Whether to use the lower or upper bank for startup
     */
-    CartridgeF8(const uInt8* image, bool swapbanks);
+    CartridgeF8(const uInt8* image, bool startlow = false);
  
     /**
       Destructor
@@ -106,12 +106,12 @@ class CartridgeF8 : public Cartridge
     virtual bool save(Serializer& out) const;
 
     /**
-      Load the current state of this cart from the given Deserializer.
+      Load the current state of this cart from the given Serializer.
 
-      @param in  The Deserializer object to use
+      @param in  The Serializer object to use
       @return  False on any errors, else true
     */
-    virtual bool load(Deserializer& in);
+    virtual bool load(Serializer& in);
 
     /**
       Get a descriptor for the device name (used in error checking).

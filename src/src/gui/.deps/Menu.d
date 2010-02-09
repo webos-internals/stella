@@ -20,11 +20,11 @@ src/gui/Menu.o: src/gui/Menu.cxx src/gui/Dialog.hxx src/gui/Command.hxx \
   /usr/local/include/SDL/SDL_version.h src/emucore/EventHandler.hxx \
   src/common/Array.hxx src/emucore/Event.hxx src/emucore/Control.hxx \
   src/emucore/Serializable.hxx src/emucore/Serializer.hxx \
-  src/emucore/Deserializer.hxx src/gui/StringList.hxx \
-  src/common/VideoModeList.hxx src/common/Array.hxx src/gui/GuiObject.hxx \
-  src/emucore/OSystem.hxx src/emucore/FrameBuffer.hxx src/gui/Rect.hxx \
-  src/gui/OptionsDialog.hxx src/gui/Menu.hxx src/gui/DialogContainer.hxx \
-  src/emucore/EventHandler.hxx src/gui/Stack.hxx
+  src/gui/StringList.hxx src/emucore/Settings.hxx src/gui/Rect.hxx \
+  src/gui/GuiObject.hxx src/emucore/OSystem.hxx \
+  src/emucore/FrameBuffer.hxx src/gui/Rect.hxx src/gui/OptionsDialog.hxx \
+  src/gui/Menu.hxx src/gui/DialogContainer.hxx \
+  src/emucore/EventHandler.hxx src/common/Stack.hxx
 
 src/gui/Dialog.hxx:
 
@@ -110,13 +110,11 @@ src/emucore/Serializable.hxx:
 
 src/emucore/Serializer.hxx:
 
-src/emucore/Deserializer.hxx:
-
 src/gui/StringList.hxx:
 
-src/common/VideoModeList.hxx:
+src/emucore/Settings.hxx:
 
-src/common/Array.hxx:
+src/gui/Rect.hxx:
 
 src/gui/GuiObject.hxx:
 
@@ -134,4 +132,4 @@ src/gui/DialogContainer.hxx:
 
 src/emucore/EventHandler.hxx:
 
-src/gui/Stack.hxx:
+src/common/Stack.hxx:

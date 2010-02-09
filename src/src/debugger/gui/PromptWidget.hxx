@@ -8,12 +8,12 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: PromptWidget.hxx,v 1.13 2008/02/06 13:45:20 stephena Exp $
+// $Id: PromptWidget.hxx 1724 2009-05-13 13:55:40Z stephena $
 //
 //   Based on code from ScummVM - Scumm Interpreter
 //   Copyright (C) 2002-2004 The ScummVM project
@@ -22,13 +22,12 @@
 #ifndef PROMPT_WIDGET_HXX
 #define PROMPT_WIDGET_HXX
 
-class ScrollBarWidget;
-
 #include <stdarg.h>
 
 #include "GuiObject.hxx"
 #include "Widget.hxx"
 #include "Command.hxx"
+#include "ScrollBarWidget.hxx"
 #include "bspf.hxx"
 
 class PromptWidget : public Widget, public CommandSender
@@ -73,7 +72,9 @@ class PromptWidget : public Widget, public CommandSender
     bool handleKeyDown(int ascii, int keycode, int modifiers);
     void handleCommand(CommandSender* sender, int cmd, int data, int id);
 
-    virtual GUI::Rect getRect() const;
+    // Account for the extra width of embedded scrollbar
+    virtual int getWidth() const { return _w + kScrollBarWidth; }
+
     virtual bool wantsFocus() { return true; }
 
     void loadConfig();

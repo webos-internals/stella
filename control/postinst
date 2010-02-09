@@ -12,7 +12,7 @@ rm -f /etc/event.d/${PID}
 cp $IPKG_OFFLINE_ROOT/etc/event.d/${PID} /etc/event.d/${PID}
 
 # create stella dirs (stella doesn't)
-mkdir -p $STELLA/config $STELLA/roms
+mkdir -p $STELLA/config $STELLA/roms $STELLA/screenshots
 
 # install the default config
 cp $IPKG_OFFLINE_ROOT/etc/stellarc $STELLA/config/

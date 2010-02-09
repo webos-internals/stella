@@ -8,20 +8,20 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: Booster.cxx,v 1.12 2008/03/02 19:20:50 stephena Exp $
+// $Id: Booster.cxx 1724 2009-05-13 13:55:40Z stephena $
 //============================================================================
 
 #include "Event.hxx"
 #include "Booster.hxx"
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-BoosterGrip::BoosterGrip(Jack jack, const Event& event)
-  : Controller(jack, event, Controller::BoosterGrip)
+BoosterGrip::BoosterGrip(Jack jack, const Event& event, const System& system)
+  : Controller(jack, event, system, Controller::BoosterGrip)
 {
   if(myJack == Left)
   {

@@ -8,15 +8,16 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: CartFE.cxx,v 1.10 2008/02/06 13:45:21 stephena Exp $
+// $Id: CartFE.cxx 1862 2009-08-27 22:59:14Z stephena $
 //============================================================================
 
 #include <cassert>
+#include <cstring>
 
 #include "System.hxx"
 #include "CartFE.hxx"
@@ -25,10 +26,7 @@
 CartridgeFE::CartridgeFE(const uInt8* image)
 {
   // Copy the ROM image into my buffer
-  for(uInt32 addr = 0; addr < 8192; ++addr)
-  {
-    myImage[addr] = image[addr];
-  }
+  memcpy(myImage, image, 8192);
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -78,18 +76,22 @@ void CartridgeFE::poke(uInt16, uInt8)
 void CartridgeFE::bank(uInt16 b)
 {
   // Doesn't support bankswitching in the normal sense
+  // TODO - add support for debugger
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 int CartridgeFE::bank()
 {
   // Doesn't support bankswitching in the normal sense
+  // TODO - add support for debugger
   return 0;
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 int CartridgeFE::bankCount()
 {
+  // Doesn't support bankswitching in the normal sense
+  // TODO - add support for debugger
   return 1;
 }
 
@@ -110,7 +112,7 @@ uInt8* CartridgeFE::getImage(int& size)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 bool CartridgeFE::save(Serializer& out) const
 {
-  string cart = name();
+  const string& cart = name();
 
   try
   {
@@ -118,12 +120,7 @@ bool CartridgeFE::save(Serializer& out) const
   }
   catch(const char* msg)
   {
-    cerr << msg << endl;
-    return false;
-  }
-  catch(...)
-  {
-    cerr << "Unknown error in save state for " << cart << endl;
+    cerr << "ERROR: CartridgeFE::save" << endl << "  " << msg << endl;
     return false;
   }
 
@@ -131,9 +128,9 @@ bool CartridgeFE::save(Serializer& out) const
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-bool CartridgeFE::load(Deserializer& in)
+bool CartridgeFE::load(Serializer& in)
 {
-  string cart = name();
+  const string& cart = name();
 
   try
   {
@@ -142,12 +139,7 @@ bool CartridgeFE::load(Deserializer& in)
   }
   catch(const char* msg)
   {
-    cerr << msg << endl;
-    return false;
-  }
-  catch(...)
-  {
-    cerr << "Unknown error in load state for " << cart << endl;
+    cerr << "ERROR: CartridgeF8SC::load" << endl << "  " << msg << endl;
     return false;
   }
 

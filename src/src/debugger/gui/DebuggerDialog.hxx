@@ -8,12 +8,12 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: DebuggerDialog.hxx,v 1.7 2008/02/06 13:45:20 stephena Exp $
+// $Id: DebuggerDialog.hxx 1860 2009-08-25 12:46:56Z stephena $
 //
 //   Based on code from ScummVM - Scumm Interpreter
 //   Copyright (C) 2002-2004 The ScummVM project
@@ -25,6 +25,7 @@
 class Debugger;
 class OSystem;
 class DialogContainer;
+class ButtonWidget;
 class CpuWidget;
 class RamWidget;
 class RomWidget;
@@ -44,12 +45,13 @@ class DebuggerDialog : public Dialog
                           int x, int y, int w, int h);
     ~DebuggerDialog();
 
-    PromptWidget* prompt()       { return myPrompt;     }
-    TiaInfoWidget* tiaInfo()     { return myTiaInfo;    }
-    TiaOutputWidget* tiaOutput() { return myTiaOutput;  }
-    TiaZoomWidget* tiaZoom()     { return myTiaZoom;    }
-    RomWidget* rom()             { return myRom;        }
-    EditTextWidget* message()    { return myMessageBox; }
+    PromptWidget* prompt()       { return myPrompt;       }
+    TiaInfoWidget* tiaInfo()     { return myTiaInfo;      }
+    TiaOutputWidget* tiaOutput() { return myTiaOutput;    }
+    TiaZoomWidget* tiaZoom()     { return myTiaZoom;      }
+    RomWidget* rom()             { return myRom;          }
+    EditTextWidget* message()    { return myMessageBox;   }
+    ButtonWidget* rewindButton() { return myRewindButton; }
 
     virtual void loadConfig();
     virtual void handleKeyDown(int ascii, int keycode, int modifiers);
@@ -66,6 +68,7 @@ class DebuggerDialog : public Dialog
     RamWidget*       myRam;
     RomWidget*       myRom;
     EditTextWidget*  myMessageBox;
+    ButtonWidget*    myRewindButton;
 
   private:
     void addTiaArea();
@@ -77,6 +80,7 @@ class DebuggerDialog : public Dialog
     void doTrace();
     void doScanlineAdvance();
     void doAdvance();
+    void doRewind();
     void doExit();
 };
 

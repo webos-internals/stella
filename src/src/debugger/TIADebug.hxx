@@ -8,23 +8,23 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: TIADebug.hxx,v 1.22 2008/02/06 13:45:20 stephena Exp $
+// $Id: TIADebug.hxx 1855 2009-08-21 14:29:59Z stephena $
 //============================================================================
 
 #ifndef TIA_DEBUG_HXX
 #define TIA_DEBUG_HXX
 
-class TIA;
 class Debugger;
 class TiaDebug;
 
 #include "Array.hxx"
 #include "DebuggerSystem.hxx"
+#include "TIA.hxx"
 
 // pointer types for TIADebug instance methods
 // (used by TiaMethodExpression)
@@ -32,54 +32,6 @@ typedef int (TIADebug::*TIADEBUG_INT_METHOD)();
 
 // call the pointed-to method on the (global) debugger object.
 #define CALL_TIADEBUG_METHOD(method) ( ( Debugger::debugger().tiaDebug().*method)() )
-
-enum TIALabel {
-	VSYNC = 0,
-	VBLANK,
-	WSYNC,
-	RSYNC,
-	NUSIZ0,
-	NUSIZ1,
-	COLUP0,
-	COLUP1,
-	COLUPF, // $08
-	COLUBK,
-	CTRLPF,
-	REFP0,
-	REFP1,
-	PF0,
-	PF1,
-	PF2,
-	RESP0,  // $10
-	RESP1,
-	RESM0,
-	RESM1,
-	RESBL,
-	AUDC0,
-	AUDC1,
-	AUDF0,
-	AUDF1,  // $18
-	AUDV0,
-	AUDV1,
-	GRP0,
-	GRP1,
-	ENAM0,
-	ENAM1,
-	ENABL,
-	HMP0,   // $20
-	HMP1,
-	HMM0,
-	HMM1,
-	HMBL,
-	VDELP0,
-	VDELP1,
-	VDELBL,
-	RESMP0, // $28
-	RESMP1,
-	HMOVE,
-	HMCLR,
-	CXCLR   // $2C
-};
 
 // Indices for various IntArray in TiaState
 enum {
@@ -102,12 +54,13 @@ class TiaState : public DebuggerState
 class TIADebug : public DebuggerSystem
 {
   public:
-    TIADebug(Debugger* dbg, Console* console);
+    TIADebug(Debugger& dbg, Console& console);
 
-    DebuggerState& getState();
-    DebuggerState& getOldState() { return myOldState; }
+    const DebuggerState& getState();
+    const DebuggerState& getOldState() { return myOldState; }
 
     void saveOldState();
+    string toString();
 
 	 /* TIA byte (or part of a byte) registers */
     uInt8 nusiz0(int newVal = -1);
@@ -187,16 +140,16 @@ class TIADebug : public DebuggerSystem
     bool collM0_M1(int newVal = -1) { return collision(14, newVal); }
 
     /* TIA strobe registers */
-    void strobeWsync() { mySystem->poke(WSYNC, 0); }
-    void strobeRsync() { mySystem->poke(RSYNC, 0); } // not emulated!
-    void strobeResP0() { mySystem->poke(RESP0, 0); }
-    void strobeResP1() { mySystem->poke(RESP1, 0); }
-    void strobeResM0() { mySystem->poke(RESM0, 0); }
-    void strobeResM1() { mySystem->poke(RESM1, 0); }
-    void strobeResBL() { mySystem->poke(RESBL, 0); }
-    void strobeHmove() { mySystem->poke(HMOVE, 0); }
-    void strobeHmclr() { mySystem->poke(HMCLR, 0); }
-    void strobeCxclr() { mySystem->poke(CXCLR, 0); }
+    void strobeWsync() { mySystem.poke(WSYNC, 0); }
+    void strobeRsync() { mySystem.poke(RSYNC, 0); } // not emulated!
+    void strobeResP0() { mySystem.poke(RESP0, 0); }
+    void strobeResP1() { mySystem.poke(RESP1, 0); }
+    void strobeResM0() { mySystem.poke(RESM0, 0); }
+    void strobeResM1() { mySystem.poke(RESM1, 0); }
+    void strobeResBL() { mySystem.poke(RESBL, 0); }
+    void strobeHmove() { mySystem.poke(HMOVE, 0); }
+    void strobeHmclr() { mySystem.poke(HMCLR, 0); }
+    void strobeCxclr() { mySystem.poke(CXCLR, 0); }
 
 	 /* read-only internal TIA state */
     int scanlines();
@@ -204,7 +157,8 @@ class TIADebug : public DebuggerSystem
     int clocksThisLine();
     bool vsync();
     bool vblank();
-    string state();
+    int vsyncAsInt()  { return int(vsync());  } // so we can use _vsync pseudo-register
+    int vblankAsInt() { return int(vblank()); } // so we can use _vblank pseudo-register
 
   private:
     /** Display a color patch for color at given index in the palette */
@@ -213,12 +167,13 @@ class TIADebug : public DebuggerSystem
     /** Get/set specific bits in the collision register (used by collXX_XX) */
     bool collision(int collID, int newVal);
 
+    string booleanWithLabel(string label, bool value);
+
   private:
     TiaState myState;
     TiaState myOldState;
 
-    System* mySystem;
-    TIA*    myTIA;
+    TIA& myTIA;
 
     string nusizStrings[8];
 };

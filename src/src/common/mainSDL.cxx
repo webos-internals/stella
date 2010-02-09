@@ -8,12 +8,12 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: mainSDL.cxx,v 1.80 2008/02/06 13:45:19 stephena Exp $
+// $Id: mainSDL.cxx 1775 2009-06-17 17:04:55Z stephena $
 //============================================================================
 
 #include <SDL.h>
@@ -62,13 +62,15 @@
 OSystem* theOSystem = (OSystem*) NULL;
 
 // Does general Cleanup in case any operation failed (or at end of program)
-void Cleanup()
+int Cleanup()
 {
   if(theOSystem)
     delete theOSystem;
 
   if(SDL_WasInit(SDL_INIT_VIDEO) & SDL_INIT_VIDEO)
     SDL_Quit();
+
+  return 0;
 }
 
 
@@ -100,6 +102,7 @@ int main(int argc, char* argv[])
 
   // Take care of commandline arguments
   string romfile = theOSystem->settings().loadCommandLine(argc, argv);
+  FilesystemNode romnode(romfile);
 
   // Finally, make sure the settings are valid
   // We do it once here, so the rest of the program can assume valid settings
@@ -107,7 +110,11 @@ int main(int argc, char* argv[])
 
   // Create the full OSystem after the settings, since settings are
   // probably needed for defaults
-  theOSystem->create();
+  if(!theOSystem->create())
+  {
+    cout << "ERROR: Couldn't create OSystem" << endl;
+    return Cleanup();
+  }
 
   // Check to see if the user requested info about a specific ROM,
   // or the list of internal ROMs
@@ -115,24 +122,21 @@ int main(int argc, char* argv[])
   if(theOSystem->settings().getBool("listrominfo"))
   {
     theOSystem->propSet().print();
-    Cleanup();
-    return 0;
+    return Cleanup();
   }
   else if(theOSystem->settings().getBool("rominfo"))
   {
-    if(argc > 1 && FilesystemNode::fileExists(romfile))
+    if(argc > 1 && romnode.exists())
       cout << theOSystem->getROMInfo(romfile);
     else
-      cout << "Error: ROM doesn't exist" << endl;
+      cout << "ERROR: ROM doesn't exist" << endl;
 
-    Cleanup();
-    return 0;
+    return Cleanup();
   }
   else if(theOSystem->settings().getBool("help"))
   {
     theOSystem->settings().usage();
-    Cleanup();
-    return 0;
+    return Cleanup();
   }
 
   // Request that the SDL window be centered, if possible
@@ -153,36 +157,35 @@ int main(int argc, char* argv[])
   //   the ROM actually exists, use it to create a new console.
   // If not, use the built-in ROM launcher.  In this case, we enter 'launcher'
   //   mode and let the main event loop take care of opening a new console/ROM.
-  if(argc == 1 || romfile == "" || !FilesystemNode::fileExists(romfile))
-    theOSystem->createLauncher();
+  if(argc == 1 || romfile == "" || !romnode.exists() || romnode.isDirectory())
+  {
+    if(theOSystem->settings().getBool("uselauncher"))
+    {
+      if(!theOSystem->createLauncher())
+        return Cleanup();
+    }
+    else
+    {
+      theOSystem->settings().usage();
+      return Cleanup();
+    }
+  }
   else if(theOSystem->createConsole(romfile))
   {
     if(theOSystem->settings().getBool("takesnapshot"))
     {
-      for(int i = 0; i < 60; ++i)  theOSystem->frameBuffer().update();
-      theOSystem->console().system().reset();
+      for(int i = 0; i < 30; ++i)  theOSystem->frameBuffer().update();
       theOSystem->eventHandler().takeSnapshot();
-      Cleanup();
-      return 0;
+      return Cleanup();
     }
 
-    if(theOSystem->settings().getBool("holdreset"))
-      theOSystem->eventHandler().handleEvent(Event::ConsoleReset, 1);
-
-    if(theOSystem->settings().getBool("holdselect"))
-      theOSystem->eventHandler().handleEvent(Event::ConsoleSelect, 1);
-
-    if(theOSystem->settings().getBool("holdbutton0"))
-      theOSystem->eventHandler().handleEvent(Event::JoystickZeroFire1, 1);
-
 #ifdef DEBUGGER_SUPPORT
-    Debugger& dbg = theOSystem->debugger();
-
     // Set up any breakpoint that was on the command line
     // (and remove the key from the settings, so they won't get set again)
     const string& initBreak = theOSystem->settings().getString("break");
     if(initBreak != "")
     {
+      Debugger& dbg = theOSystem->debugger();
       int bp = dbg.stringToValue(initBreak);
       dbg.setBreakPoint(bp, true);
       theOSystem->settings().setString("break", "");
@@ -193,10 +196,7 @@ int main(int argc, char* argv[])
 #endif
   }
   else
-  {
-    Cleanup();
-    return 0;
-  }
+    return Cleanup();
 
   // Swallow any spurious events in the queue
   // These are normally caused by joystick/mouse jitter
@@ -207,6 +207,5 @@ int main(int argc, char* argv[])
   theOSystem->mainLoop();
 
   // Cleanup time ...
-  Cleanup();
-  return 0;
+  return Cleanup();
 }

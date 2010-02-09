@@ -8,22 +8,25 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: Control.cxx,v 1.8 2008/02/06 13:45:21 stephena Exp $
+// $Id: Control.cxx 1862 2009-08-27 22:59:14Z stephena $
 //============================================================================
 
 #include <cassert>
 
+#include "System.hxx"
 #include "Control.hxx"
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Controller::Controller(Jack jack, const Event& event, Type type)
+Controller::Controller(Jack jack, const Event& event, const System& system,
+                       Type type)
   : myJack(jack),
     myEvent(event),
+    mySystem(system),
     myType(type)
 {
   myDigitalPinState[One]   = 
@@ -55,8 +58,20 @@ Controller::Controller(Jack jack, const Event& event, Type type)
     case TrackBall22:
       myName = "TrackBall22";
       break;
+    case TrackBall80:
+      myName = "TrackBall80";
+      break;
+    case AmigaMouse:
+      myName = "AmigaMouse";
+      break;
     case AtariVox:
       myName = "AtariVox";
+      break;
+    case SaveKey:
+      myName = "SaveKey";
+      break;
+    case KidVid:
+      myName = "KidVid";
       break;
   }
 }
@@ -73,7 +88,7 @@ const Controller::Type Controller::type() const
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-bool Controller::read(DigitalPin pin) const
+bool Controller::read(DigitalPin pin)
 {
   switch(pin)
   {
@@ -90,7 +105,7 @@ bool Controller::read(DigitalPin pin) const
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Int32 Controller::read(AnalogPin pin) const
+Int32 Controller::read(AnalogPin pin)
 {
   switch(pin)
   {
@@ -119,16 +134,16 @@ bool Controller::save(Serializer& out) const
     out.putInt(myAnalogPinValue[Five]);
     out.putInt(myAnalogPinValue[Nine]);
   }
-  catch(...)
+  catch(...)  // FIXME
   {
-    cerr << "Error: Controller::save() exception\n";
+    cerr << "ERROR: Controller::save() exception\n";
     return false;
   }
   return true;
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-bool Controller::load(Deserializer& in)
+bool Controller::load(Serializer& in)
 {
   try
   {
@@ -143,9 +158,9 @@ bool Controller::load(Deserializer& in)
     myAnalogPinValue[Five] = (Int32) in.getInt();
     myAnalogPinValue[Nine] = (Int32) in.getInt();
   }
-  catch(...)
+  catch(...)  // FIXME
   {
-    cerr << "Error: Controller::load() exception\n";
+    cerr << "ERROR: Controller::load() exception\n";
     return false;
   }
   return true;
@@ -158,6 +173,12 @@ string Controller::name() const
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+string Controller::about() const
+{
+  return name() + " in " + (myJack == Left ? "left port" : "right port");
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const Int32 Controller::maximumResistance = 0x7FFFFFFF;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -167,6 +188,7 @@ const Int32 Controller::minimumResistance = 0x00000000;
 Controller::Controller(const Controller& c)
   : myJack(c.myJack),
     myEvent(c.myEvent),
+    mySystem(c.mySystem),
     myType(c.myType)
 {
   assert(false);

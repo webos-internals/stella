@@ -8,15 +8,16 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: CartMB.cxx,v 1.13 2008/02/06 13:45:21 stephena Exp $
+// $Id: CartMB.cxx 1862 2009-08-27 22:59:14Z stephena $
 //============================================================================
 
 #include <cassert>
+#include <cstring>
 
 #include "System.hxx"
 #include "CartMB.hxx"
@@ -25,10 +26,7 @@
 CartridgeMB::CartridgeMB(const uInt8* image)
 {
   // Copy the ROM image into my buffer
-  for(uInt32 addr = 0; addr < 65536; ++addr)
-  {
-    myImage[addr] = image[addr];
-  }
+  memcpy(myImage, image, 65536);
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -72,32 +70,34 @@ void CartridgeMB::install(System& system)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 uInt8 CartridgeMB::peek(uInt16 address)
 {
-  address = address & 0x0FFF;
+  address &= 0x0FFF;
 
   // Switch to next bank
-  if(address == 0x0FF0) incbank();
+  if(address == 0x0FF0)
+    incbank();
 
-  return myImage[myCurrentBank * 4096 + address];
+  return myImage[(myCurrentBank << 12) + address];
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void CartridgeMB::poke(uInt16 address, uInt8)
 {
-  address = address & 0x0FFF;
+  address &= 0x0FFF;
 
   // Switch to next bank
-  if(address == 0x0FF0) incbank();
+  if(address == 0x0FF0)
+    incbank();
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void CartridgeMB::incbank()
 {
-  if(bankLocked) return;
+  if(myBankLocked) return;
 
   // Remember what bank we're in
   myCurrentBank ++;
   myCurrentBank &= 0x0F;
-  uInt16 offset = myCurrentBank * 4096;
+  uInt16 offset = myCurrentBank << 12;
   uInt16 shift = mySystem->pageShift();
   uInt16 mask = mySystem->pageMask();
 
@@ -118,9 +118,9 @@ void CartridgeMB::incbank()
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void CartridgeMB::bank(uInt16 bank)
 {
-  if(bankLocked) return;
+  if(myBankLocked) return;
 
-  myCurrentBank = (bank - 1);
+  myCurrentBank = bank - 1;
   incbank();
 }
 
@@ -139,8 +139,7 @@ int CartridgeMB::bankCount()
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 bool CartridgeMB::patch(uInt16 address, uInt8 value)
 {
-  address = address & 0x0FFF;
-  myImage[myCurrentBank * 4096 + address] = value;
+  myImage[(myCurrentBank << 12) + (address & 0x0FFF)] = value;
   return true;
 } 
 
@@ -154,7 +153,7 @@ uInt8* CartridgeMB::getImage(int& size)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 bool CartridgeMB::save(Serializer& out) const
 {
-  string cart = name();
+  const string& cart = name();
 
   try
   {
@@ -164,12 +163,7 @@ bool CartridgeMB::save(Serializer& out) const
   }
   catch(const char* msg)
   {
-    cerr << msg << endl;
-    return false;
-  }
-  catch(...)
-  {
-    cerr << "Unknown error in save state for " << cart << endl;
+    cerr << "ERROR: CartridgeMB::save" << endl << "  " << msg << endl;
     return false;
   }
 
@@ -177,9 +171,9 @@ bool CartridgeMB::save(Serializer& out) const
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-bool CartridgeMB::load(Deserializer& in)
+bool CartridgeMB::load(Serializer& in)
 {
-  string cart = name();
+  const string& cart = name();
 
   try
   {
@@ -190,12 +184,7 @@ bool CartridgeMB::load(Deserializer& in)
   }
   catch(const char* msg)
   {
-    cerr << msg << endl;
-    return false;
-  }
-  catch(...)
-  {
-    cerr << "Unknown error in load state for " << cart << endl;
+    cerr << "ERROR: CartridgeMB::load" << endl << "  " << msg << endl;
     return false;
   }
 

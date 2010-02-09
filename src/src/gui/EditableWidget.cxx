@@ -8,17 +8,18 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: EditableWidget.cxx,v 1.27 2008/02/06 13:45:23 stephena Exp $
+// $Id: EditableWidget.cxx 1849 2009-08-05 16:05:34Z stephena $
 //
 //   Based on code from ScummVM - Scumm Interpreter
 //   Copyright (C) 2002-2004 The ScummVM project
 //============================================================================
 
+#include "Dialog.hxx"
 #include "EditableWidget.hxx"
 
 
@@ -76,7 +77,7 @@ void EditableWidget::setEditable(bool editable)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 bool EditableWidget::tryInsertChar(char c, int pos)
 {
-  if (isprint(c))
+  if(isprint(c) && c != '\"')
   {
     _editString.insert(pos, 1, c);
     return true;
@@ -91,13 +92,13 @@ bool EditableWidget::handleKeyDown(int ascii, int keycode, int modifiers)
     return true;
 
   // Ignore all alt-mod keys
-  if(instance()->eventHandler().kbdAlt(modifiers))
+  if(instance().eventHandler().kbdAlt(modifiers))
     return true;
 
   bool handled = true;
   bool dirty = false;
 
-  switch (keycode)
+  switch (ascii)
   {
     case '\n':  // enter/return
     case '\r':
@@ -115,22 +116,24 @@ bool EditableWidget::handleKeyDown(int ascii, int keycode, int modifiers)
 
     case 8:     // backspace
       dirty = killChar(-1);
+      if(dirty)  sendCommand(kEditChangedCmd, ascii, _id);
       break;
 
     case 127:   // delete
       dirty = killChar(+1);
+      if(dirty)  sendCommand(kEditChangedCmd, ascii, _id);
       break;
 
     case 256 + 20:  // left arrow
-      if(instance()->eventHandler().kbdControl(modifiers))
-        dirty = specialKeys(keycode);
+      if(instance().eventHandler().kbdControl(modifiers))
+        dirty = specialKeys(ascii, keycode);
       else if(_caretPos > 0)
         dirty = setCaretPos(_caretPos - 1);
       break;
 
     case 256 + 19:  // right arrow
-      if(instance()->eventHandler().kbdControl(modifiers))
-        dirty = specialKeys(keycode);
+      if(instance().eventHandler().kbdControl(modifiers))
+        dirty = specialKeys(ascii, keycode);
       else if(_caretPos < (int)_editString.size())
         dirty = setCaretPos(_caretPos + 1);
       break;
@@ -144,9 +147,9 @@ bool EditableWidget::handleKeyDown(int ascii, int keycode, int modifiers)
       break;
 
     default:
-      if (instance()->eventHandler().kbdControl(modifiers))
+      if (instance().eventHandler().kbdControl(modifiers))
       {
-        dirty = specialKeys(keycode);
+        dirty = specialKeys(ascii, keycode);
       }
       else if (tryInsertChar((char)ascii, _caretPos))
       {
@@ -186,9 +189,7 @@ void EditableWidget::drawCaret()
   if (!_editable || !isVisible() || !_boss->isVisible() || !_hasFocus)
     return;
 
-  GUI::Rect editRect = getEditRect();
-
-  int color = kTextColorHi;
+  const GUI::Rect& editRect = getEditRect();
   int x = editRect.left;
   int y = editRect.top;
 
@@ -197,8 +198,8 @@ void EditableWidget::drawCaret()
   x += _x;
   y += _y;
 
-  FrameBuffer& fb = _boss->instance()->frameBuffer();
-  fb.vLine(x, y+2, y + editRect.height() - 3, color);
+  FBSurface& s = _boss->dialog().surface();
+  s.vLine(x, y+2, y + editRect.height() - 3, kTextColorHi);
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -218,7 +219,6 @@ bool EditableWidget::adjustOffset()
 
   // For some reason (differences in ScummVM event handling??),
   // this method should always return true.
-
   int caretpos = getCaretOffset();
   const int editWidth = getEditRect().width();
 
@@ -243,12 +243,11 @@ bool EditableWidget::adjustOffset()
         _editScrollOffset = 0;
     }
   }
-
   return true;
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-bool EditableWidget::specialKeys(int keycode)
+bool EditableWidget::specialKeys(int ascii, int keycode)
 {
   bool handled = true;
 
@@ -260,6 +259,7 @@ bool EditableWidget::specialKeys(int keycode)
 
     case 'c':
       copySelectedText();
+      if(handled) sendCommand(kEditChangedCmd, ascii, _id);
       break;
 
     case 'e':
@@ -268,22 +268,27 @@ bool EditableWidget::specialKeys(int keycode)
 
     case 'd':
       handled = killChar(+1);
+      if(handled) sendCommand(kEditChangedCmd, ascii, _id);
       break;
 
     case 'k':
       handled = killLine(+1);
+      if(handled) sendCommand(kEditChangedCmd, ascii, _id);
       break;
 
     case 'u':
       handled = killLine(-1);
+      if(handled) sendCommand(kEditChangedCmd, ascii, _id);
       break;
 
     case 'v':
       pasteSelectedText();
+      if(handled) sendCommand(kEditChangedCmd, ascii, _id);
       break;
 
     case 'w':
       handled = killLastWord();
+      if(handled) sendCommand(kEditChangedCmd, ascii, _id);
       break;
 
     case 256 + 20:  // left arrow

@@ -8,15 +8,16 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: RectList.cxx,v 1.4 2008/02/06 13:45:19 stephena Exp $
+// $Id: RectList.cxx 1724 2009-05-13 13:55:40Z stephena $
 //============================================================================
 
 #include <SDL.h>
+#include "bspf.hxx"
 #include "RectList.hxx"
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -73,4 +74,22 @@ Uint32 RectList::numRects()
 void RectList::start()
 {
   currentRect = 0;
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void RectList::print(int boundWidth, int boundHeight)
+{
+  cerr << "RectList: rects = " << numRects() << endl;
+  for(Uint32 i = 0; i < currentRect; ++i)
+  {
+    cerr << "Rect " << i << endl
+         << "  x = " << rectArray[i].x << endl
+         << "  y = " << rectArray[i].y << endl
+         << "  w = " << rectArray[i].w << endl
+         << "  h = " << rectArray[i].h << endl;
+    if((rectArray[i].x + rectArray[i].w) > boundWidth ||
+       (rectArray[i].y + rectArray[i].h) > boundHeight)
+      cerr << " TOO LARGE" << endl;
+    cerr << endl;
+  }
 }

@@ -1,16 +1,18 @@
 src/cheat/RamCheat.o: src/cheat/RamCheat.cxx src/emucore/Console.hxx \
   src/emucore/m6502/src/bspf/src/bspf.hxx src/emucore/Control.hxx \
   src/emucore/Serializable.hxx src/emucore/Serializer.hxx \
-  src/emucore/Deserializer.hxx src/emucore/Props.hxx src/emucore/TIA.hxx \
-  src/emucore/Sound.hxx src/emucore/m6502/src/Device.hxx \
-  src/emucore/Serializable.hxx src/emucore/m6502/src/bspf/src/bspf.hxx \
-  src/emucore/MediaSrc.hxx src/emucore/Cart.hxx src/emucore/M6532.hxx \
+  src/emucore/Props.hxx src/emucore/TIA.hxx src/emucore/Sound.hxx \
+  src/emucore/m6502/src/Device.hxx src/emucore/Serializable.hxx \
+  src/emucore/m6502/src/bspf/src/bspf.hxx \
+  src/emucore/m6502/src/System.hxx src/emucore/m6502/src/Device.hxx \
+  src/emucore/m6502/src/NullDev.hxx src/emucore/TIATables.hxx \
+  src/emucore/Cart.hxx src/common/Array.hxx \
+  src/emucore/m6502/src/bspf/src/bspf.hxx src/emucore/M6532.hxx \
   src/emucore/AtariVox.hxx src/emucore/m6502/src/System.hxx \
-  src/emucore/m6502/src/Device.hxx src/emucore/m6502/src/NullDev.hxx \
-  src/cheat/CheatManager.hxx src/emucore/OSystem.hxx src/common/Array.hxx \
-  src/emucore/m6502/src/bspf/src/bspf.hxx src/emucore/EventHandler.hxx \
-  /usr/local/include/SDL/SDL.h /usr/local/include/SDL/SDL_main.h \
-  /usr/local/include/SDL/SDL_stdinc.h /usr/local/include/SDL/SDL_config.h \
+  src/cheat/CheatManager.hxx src/emucore/OSystem.hxx \
+  src/emucore/EventHandler.hxx /usr/local/include/SDL/SDL.h \
+  /usr/local/include/SDL/SDL_main.h /usr/local/include/SDL/SDL_stdinc.h \
+  /usr/local/include/SDL/SDL_config.h \
   /usr/local/include/SDL/SDL_platform.h \
   /usr/local/include/SDL/begin_code.h /usr/local/include/SDL/close_code.h \
   /usr/local/include/SDL/SDL_audio.h /usr/local/include/SDL/SDL_error.h \
@@ -26,7 +28,7 @@ src/cheat/RamCheat.o: src/cheat/RamCheat.cxx src/emucore/Console.hxx \
   /usr/local/include/SDL/SDL_version.h src/emucore/Event.hxx \
   src/gui/StringList.hxx src/common/Array.hxx \
   src/emucore/m6502/src/bspf/src/bspf.hxx src/emucore/FrameBuffer.hxx \
-  src/common/VideoModeList.hxx src/common/Array.hxx \
+  src/emucore/Settings.hxx src/gui/Rect.hxx \
   src/emucore/m6502/src/bspf/src/bspf.hxx src/common/Array.hxx \
   src/cheat/Cheat.hxx src/gui/StringList.hxx src/cheat/RamCheat.hxx
 
@@ -40,8 +42,6 @@ src/emucore/Serializable.hxx:
 
 src/emucore/Serializer.hxx:
 
-src/emucore/Deserializer.hxx:
-
 src/emucore/Props.hxx:
 
 src/emucore/TIA.hxx:
@@ -54,9 +54,19 @@ src/emucore/Serializable.hxx:
 
 src/emucore/m6502/src/bspf/src/bspf.hxx:
 
-src/emucore/MediaSrc.hxx:
+src/emucore/m6502/src/System.hxx:
+
+src/emucore/m6502/src/Device.hxx:
+
+src/emucore/m6502/src/NullDev.hxx:
+
+src/emucore/TIATables.hxx:
 
 src/emucore/Cart.hxx:
+
+src/common/Array.hxx:
+
+src/emucore/m6502/src/bspf/src/bspf.hxx:
 
 src/emucore/M6532.hxx:
 
@@ -64,17 +74,9 @@ src/emucore/AtariVox.hxx:
 
 src/emucore/m6502/src/System.hxx:
 
-src/emucore/m6502/src/Device.hxx:
-
-src/emucore/m6502/src/NullDev.hxx:
-
 src/cheat/CheatManager.hxx:
 
 src/emucore/OSystem.hxx:
-
-src/common/Array.hxx:
-
-src/emucore/m6502/src/bspf/src/bspf.hxx:
 
 src/emucore/EventHandler.hxx:
 
@@ -140,9 +142,9 @@ src/emucore/m6502/src/bspf/src/bspf.hxx:
 
 src/emucore/FrameBuffer.hxx:
 
-src/common/VideoModeList.hxx:
+src/emucore/Settings.hxx:
 
-src/common/Array.hxx:
+src/gui/Rect.hxx:
 
 src/emucore/m6502/src/bspf/src/bspf.hxx:
 

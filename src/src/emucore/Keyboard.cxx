@@ -8,20 +8,20 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: Keyboard.cxx,v 1.10 2008/02/06 13:45:21 stephena Exp $
+// $Id: Keyboard.cxx 1724 2009-05-13 13:55:40Z stephena $
 //============================================================================
 
 #include "Event.hxx"
 #include "Keyboard.hxx"
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Keyboard::Keyboard(Jack jack, const Event& event)
-  : Controller(jack, event, Controller::Keyboard),
+Keyboard::Keyboard(Jack jack, const Event& event, const System& system)
+  : Controller(jack, event, system, Controller::Keyboard),
     myPinState(0)
 {
   if(myJack == Left)

@@ -13,7 +13,7 @@
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: bspf.hxx,v 1.18 2007/09/03 18:37:22 stephena Exp $
+// $Id: bspf.hxx 1824 2009-07-01 16:04:28Z stephena $
 //============================================================================
 
 #ifndef BSPF_HXX
@@ -24,20 +24,41 @@
   that need to be defined for different operating systems.
 
   @author Bradford W. Mott
-  @version $Id: bspf.hxx,v 1.18 2007/09/03 18:37:22 stephena Exp $
+  @version $Id: bspf.hxx 1824 2009-07-01 16:04:28Z stephena $
 */
 
-// Types for 8-bit signed and unsigned integers
-typedef signed char Int8;
-typedef unsigned char uInt8;
+#ifdef HAVE_INTTYPES
+  #include <inttypes.h>
 
-// Types for 16-bit signed and unsigned integers
-typedef signed short Int16;
-typedef unsigned short uInt16;
+  // Types for 8-bit signed and unsigned integers
+  typedef int8_t Int8;
+  typedef uint8_t uInt8;
+  // Types for 16-bit signed and unsigned integers
+  typedef int16_t Int16;
+  typedef uint16_t uInt16;
+  // Types for 32-bit signed and unsigned integers
+  typedef int32_t Int32;
+  typedef uint32_t uInt32;
+  // Types for 64-bit signed and unsigned integers
+  typedef int64_t Int64;
+  typedef uint64_t uInt64;
+#elif defined BSPF_WIN32
+  // Types for 8-bit signed and unsigned integers
+  typedef signed char Int8;
+  typedef unsigned char uInt8;
+  // Types for 16-bit signed and unsigned integers
+  typedef signed short Int16;
+  typedef unsigned short uInt16;
+  // Types for 32-bit signed and unsigned integers
+  typedef signed int Int32;
+  typedef unsigned int uInt32;
+  // Types for 64-bit signed and unsigned integers
+  typedef __int64 Int64;
+  typedef unsigned __int64 uInt64;
+#else
+  #error Update BSPF.hxx for datatypes
+#endif
 
-// Types for 32-bit signed and unsigned integers
-typedef signed int Int32;
-typedef unsigned int uInt32;
 
 // The following code should provide access to the standard C++ objects and
 // types: cout, cerr, string, ostream, istream, etc.
@@ -51,10 +72,8 @@ typedef unsigned int uInt32;
   #include <string>
   using namespace std;
 #endif
-	
-#ifdef HAVE_INTTYPES
-  #include <inttypes.h>
-#endif
+
+#include <algorithm>
 
 // Defines to help with path handling
 #if defined BSPF_UNIX
@@ -68,13 +87,14 @@ typedef unsigned int uInt32;
 #endif
 
 // I wish Windows had a complete POSIX layer
-#ifdef BSPF_WIN32
+#if defined BSPF_WIN32 && !defined __GNUG__
   #define BSPF_strcasecmp stricmp
   #define BSPF_strncasecmp strnicmp
   #define BSPF_isblank(c) ((c == ' ') || (c == '\t'))
   #define BSPF_snprintf _snprintf
   #define BSPF_vsnprintf _vsnprintf
 #else
+  #include <strings.h>
   #define BSPF_strcasecmp strcasecmp
   #define BSPF_strncasecmp strncasecmp
   #define BSPF_isblank(c) isblank(c)
@@ -87,6 +107,12 @@ template<typename T> inline void BSPF_swap(T &a, T &b) { T tmp = a; a = b; b = t
 template<typename T> inline T BSPF_abs (T x) { return (x>=0) ? x : -x; }
 template<typename T> inline T BSPF_min (T a, T b) { return (a<b) ? a : b; }
 template<typename T> inline T BSPF_max (T a, T b) { return (a>b) ? a : b; }
+inline string BSPF_tolower(const string& s)
+{
+  string t = s;
+  transform(t.begin(), t.end(), t.begin(), (int(*)(int)) tolower);
+  return t;
+}
 
 static const string EmptyString("");
 

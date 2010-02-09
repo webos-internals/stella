@@ -8,24 +8,25 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: OSystemWin32.hxx,v 1.12 2008/02/06 13:45:24 stephena Exp $
+// $Id: OSystemWin32.hxx 1823 2009-07-01 14:39:01Z stephena $
 //============================================================================
 
 #ifndef OSYSTEM_WIN32_HXX
 #define OSYSTEM_WIN32_HXX
 
+#include "OSystem.hxx"
 #include "bspf.hxx"
 
 /**
   This class defines Windows system specific settings.
 
   @author  Stephen Anthony
-  @version $Id: OSystemWin32.hxx,v 1.12 2008/02/06 13:45:24 stephena Exp $
+  @version $Id: OSystemWin32.hxx 1823 2009-07-01 14:39:01Z stephena $
 */
 class OSystemWin32 : public OSystem
 {
@@ -46,7 +47,7 @@ class OSystemWin32 : public OSystem
 
       @return Current time in microseconds.
     */
-    virtual uInt32 getTicks();
+    virtual uInt64 getTicks() const;
 };
 
 #endif

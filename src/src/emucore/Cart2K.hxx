@@ -8,20 +8,18 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: Cart2K.hxx,v 1.11 2008/02/06 13:45:20 stephena Exp $
+// $Id: Cart2K.hxx 1849 2009-08-05 16:05:34Z stephena $
 //============================================================================
 
 #ifndef CARTRIDGE2K_HXX
 #define CARTRIDGE2K_HXX
 
 class System;
-class Serializer;
-class Deserializer;
 
 #include "bspf.hxx"
 #include "Cart.hxx"
@@ -32,7 +30,7 @@ class Deserializer;
   2600's 4K cartridge addressing space.
 
   @author  Bradford W. Mott
-  @version $Id: Cart2K.hxx,v 1.11 2008/02/06 13:45:20 stephena Exp $
+  @version $Id: Cart2K.hxx 1849 2009-08-05 16:05:34Z stephena $
 */
 class Cartridge2K : public Cartridge
 {
@@ -41,8 +39,9 @@ class Cartridge2K : public Cartridge
       Create a new cartridge using the specified image
 
       @param image Pointer to the ROM image
+      @param size  The size of the ROM image (<= 2048 bytes)
     */
-    Cartridge2K(const uInt8* image);
+    Cartridge2K(const uInt8* image, uInt32 size);
  
     /**
       Destructor
@@ -108,12 +107,12 @@ class Cartridge2K : public Cartridge
     virtual bool save(Serializer& out) const;
 
     /**
-      Load the current state of this cart from the given Deserializer.
+      Load the current state of this cart from the given Serializer.
 
-      @param in  The Deserializer object to use
+      @param in  The Serializer object to use
       @return  False on any errors, else true
     */
-    virtual bool load(Deserializer& in);
+    virtual bool load(Serializer& in);
 
     /**
       Get a descriptor for the device name (used in error checking).
@@ -139,8 +138,14 @@ class Cartridge2K : public Cartridge
     virtual void poke(uInt16 address, uInt8 value);
 
   private:
-    // The 2k ROM image for the cartridge
-    uInt8 myImage[2048];
+    // Pointer to a dynamically allocated ROM image of the cartridge
+    uInt8* myImage;
+
+    // Size of the ROM image
+    uInt32 mySize;
+
+    // Mask to use for mirroring
+    uInt32 myMask;
 };
 
 #endif

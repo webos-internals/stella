@@ -23,8 +23,7 @@ my %proptype = (
 "Display.YStart"          => 16,
 "Display.Height"          => 17,
 "Display.Phosphor"        => 18,
-"Display.PPBlend"         => 19,
-"Emulation.HmoveBlanks"   => 20
+"Display.PPBlend"         => 19
 );
 
 my @prop_defaults = (
@@ -47,8 +46,7 @@ my @prop_defaults = (
   "34",
   "210",
   "NO",
-  "77",
-  "YES"
+  "77"
 );
 
 
@@ -72,6 +70,10 @@ foreach $line (<INFILE>) {
 	if ($line =~ /^""/) {
 		my $key = $props[$proptype{'Cartridge.MD5'}];
 #		print "Inserting properties for key = $key\n";
+
+		if(defined($propset{$key})) {
+			print "Duplicate: $key\n";
+		}
 		$propset{$key} = [ @props ];
 
 		undef @props;
@@ -95,6 +97,24 @@ printf "Valid properties found: $size\n";
 # Construct the output file in C++ format
 # Walk the results array and print each item
 # This array will now contain the original tree converted to a BST in array format
+print OUTFILE "//============================================================================\n";
+print OUTFILE "//\n";
+print OUTFILE "//   SSSS    tt          lll  lll\n";
+print OUTFILE "//  SS  SS   tt           ll   ll\n";
+print OUTFILE "//  SS     tttttt  eeee   ll   ll   aaaa\n";
+print OUTFILE "//   SSSS    tt   ee  ee  ll   ll      aa\n";
+print OUTFILE "//      SS   tt   eeeeee  ll   ll   aaaaa  --  \"An Atari 2600 VCS Emulator\"\n";
+print OUTFILE "//  SS  SS   tt   ee      ll   ll  aa  aa\n";
+print OUTFILE "//   SSSS     ttt  eeeee llll llll  aaaaa\n";
+print OUTFILE "//\n";
+print OUTFILE "// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team\n";
+print OUTFILE "//\n";
+print OUTFILE "// See the file \"license\" for information on usage and redistribution of\n";
+print OUTFILE "// this file, and for a DISCLAIMER OF ALL WARRANTIES.\n";
+print OUTFILE "//\n";
+print OUTFILE "// \$Id\$\n";
+print OUTFILE "//============================================================================\n";
+print OUTFILE "\n";
 print OUTFILE "#ifndef DEF_PROPS_HXX\n";
 print OUTFILE "#define DEF_PROPS_HXX\n";
 print OUTFILE "\n";

@@ -8,12 +8,12 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: Props.hxx,v 1.16 2008/02/06 13:45:22 stephena Exp $
+// $Id: Props.hxx 1724 2009-05-13 13:55:40Z stephena $
 //============================================================================
 
 #ifndef PROPERTIES_HXX
@@ -42,7 +42,6 @@ enum PropertyType {
   Display_Height,
   Display_Phosphor,
   Display_PPBlend,
-  Emulation_HmoveBlanks,
   LastPropType
 };
 
@@ -55,7 +54,7 @@ enum PropertyType {
   if the property key is not found in the original property list.
 
   @author  Bradford W. Mott
-  @version $Id: Props.hxx,v 1.16 2008/02/06 13:45:22 stephena Exp $
+  @version $Id: Props.hxx 1724 2009-05-13 13:55:40Z stephena $
 */
 class Properties
 {

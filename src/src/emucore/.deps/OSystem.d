@@ -18,25 +18,30 @@ src/emucore/OSystem.o: src/emucore/OSystem.cxx \
   /usr/local/include/SDL/SDL_loadso.h /usr/local/include/SDL/SDL_timer.h \
   /usr/local/include/SDL/SDL_version.h src/emucore/Event.hxx \
   src/emucore/Control.hxx src/emucore/Serializable.hxx \
-  src/emucore/Serializer.hxx src/emucore/Deserializer.hxx \
-  src/gui/StringList.hxx src/common/Array.hxx \
+  src/emucore/Serializer.hxx src/gui/StringList.hxx src/common/Array.hxx \
   src/emucore/m6502/src/bspf/src/bspf.hxx src/emucore/FrameBuffer.hxx \
-  src/common/VideoModeList.hxx src/common/Array.hxx \
+  src/emucore/Settings.hxx src/gui/Rect.hxx \
   src/emucore/m6502/src/bspf/src/bspf.hxx src/common/Array.hxx \
-  src/cheat/Cheat.hxx src/gui/StringList.hxx src/emucore/FSNode.hxx \
-  src/emucore/unzip.h src/emucore/MD5.hxx src/emucore/Settings.hxx \
-  src/emucore/PropsSet.hxx src/gui/Menu.hxx src/gui/DialogContainer.hxx \
-  src/emucore/EventHandler.hxx src/gui/Stack.hxx src/gui/CommandMenu.hxx \
-  src/gui/Launcher.hxx src/gui/Font.hxx src/gui/StellaFont.hxx \
-  src/gui/Font.hxx src/gui/StellaLargeFont.hxx src/gui/ConsoleFont.hxx \
-  src/gui/Widget.hxx src/emucore/Event.hxx src/emucore/FrameBuffer.hxx \
-  src/gui/GuiObject.hxx src/gui/Command.hxx src/emucore/OSystem.hxx \
-  src/gui/Rect.hxx src/emucore/Console.hxx src/emucore/Props.hxx \
+  src/cheat/Cheat.hxx src/gui/StringList.hxx src/emucore/SerialPort.hxx \
+  src/unix/SerialPortUNIX.hxx src/emucore/SerialPort.hxx \
+  src/emucore/FSNode.hxx src/common/SharedPtr.hxx src/emucore/unzip.h \
+  src/emucore/MD5.hxx src/emucore/PropsSet.hxx src/emucore/Props.hxx \
+  src/gui/Menu.hxx src/gui/DialogContainer.hxx \
+  src/emucore/EventHandler.hxx src/common/Stack.hxx \
+  src/gui/CommandMenu.hxx src/gui/Launcher.hxx src/gui/Font.hxx \
+  src/gui/StellaFont.hxx src/gui/Font.hxx src/gui/StellaMediumFont.hxx \
+  src/gui/StellaLargeFont.hxx src/gui/ConsoleFont.hxx src/gui/Widget.hxx \
+  src/gui/Dialog.hxx src/gui/Command.hxx src/gui/Widget.hxx \
+  src/emucore/Event.hxx src/emucore/FrameBuffer.hxx src/gui/GuiObject.hxx \
+  src/emucore/OSystem.hxx src/gui/Rect.hxx src/emucore/Console.hxx \
   src/emucore/TIA.hxx src/emucore/Sound.hxx \
   src/emucore/m6502/src/Device.hxx src/emucore/Serializable.hxx \
-  src/emucore/m6502/src/bspf/src/bspf.hxx src/emucore/MediaSrc.hxx \
+  src/emucore/m6502/src/bspf/src/bspf.hxx \
+  src/emucore/m6502/src/System.hxx src/emucore/m6502/src/Device.hxx \
+  src/emucore/m6502/src/NullDev.hxx src/emucore/TIATables.hxx \
   src/emucore/Cart.hxx src/emucore/M6532.hxx src/emucore/AtariVox.hxx \
-  src/emucore/StateManager.hxx src/emucore/OSystem.hxx
+  src/emucore/Random.hxx src/emucore/StateManager.hxx \
+  src/emucore/OSystem.hxx
 
 src/emucore/m6502/src/bspf/src/bspf.hxx:
 
@@ -112,8 +117,6 @@ src/emucore/Serializable.hxx:
 
 src/emucore/Serializer.hxx:
 
-src/emucore/Deserializer.hxx:
-
 src/gui/StringList.hxx:
 
 src/common/Array.hxx:
@@ -122,9 +125,9 @@ src/emucore/m6502/src/bspf/src/bspf.hxx:
 
 src/emucore/FrameBuffer.hxx:
 
-src/common/VideoModeList.hxx:
+src/emucore/Settings.hxx:
 
-src/common/Array.hxx:
+src/gui/Rect.hxx:
 
 src/emucore/m6502/src/bspf/src/bspf.hxx:
 
@@ -134,15 +137,23 @@ src/cheat/Cheat.hxx:
 
 src/gui/StringList.hxx:
 
+src/emucore/SerialPort.hxx:
+
+src/unix/SerialPortUNIX.hxx:
+
+src/emucore/SerialPort.hxx:
+
 src/emucore/FSNode.hxx:
+
+src/common/SharedPtr.hxx:
 
 src/emucore/unzip.h:
 
 src/emucore/MD5.hxx:
 
-src/emucore/Settings.hxx:
-
 src/emucore/PropsSet.hxx:
+
+src/emucore/Props.hxx:
 
 src/gui/Menu.hxx:
 
@@ -150,7 +161,7 @@ src/gui/DialogContainer.hxx:
 
 src/emucore/EventHandler.hxx:
 
-src/gui/Stack.hxx:
+src/common/Stack.hxx:
 
 src/gui/CommandMenu.hxx:
 
@@ -162,9 +173,17 @@ src/gui/StellaFont.hxx:
 
 src/gui/Font.hxx:
 
+src/gui/StellaMediumFont.hxx:
+
 src/gui/StellaLargeFont.hxx:
 
 src/gui/ConsoleFont.hxx:
+
+src/gui/Widget.hxx:
+
+src/gui/Dialog.hxx:
+
+src/gui/Command.hxx:
 
 src/gui/Widget.hxx:
 
@@ -174,15 +193,11 @@ src/emucore/FrameBuffer.hxx:
 
 src/gui/GuiObject.hxx:
 
-src/gui/Command.hxx:
-
 src/emucore/OSystem.hxx:
 
 src/gui/Rect.hxx:
 
 src/emucore/Console.hxx:
-
-src/emucore/Props.hxx:
 
 src/emucore/TIA.hxx:
 
@@ -194,13 +209,21 @@ src/emucore/Serializable.hxx:
 
 src/emucore/m6502/src/bspf/src/bspf.hxx:
 
-src/emucore/MediaSrc.hxx:
+src/emucore/m6502/src/System.hxx:
+
+src/emucore/m6502/src/Device.hxx:
+
+src/emucore/m6502/src/NullDev.hxx:
+
+src/emucore/TIATables.hxx:
 
 src/emucore/Cart.hxx:
 
 src/emucore/M6532.hxx:
 
 src/emucore/AtariVox.hxx:
+
+src/emucore/Random.hxx:
 
 src/emucore/StateManager.hxx:
 

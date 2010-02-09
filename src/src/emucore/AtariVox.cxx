@@ -8,173 +8,164 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: AtariVox.cxx,v 1.6 2008/02/06 13:45:20 stephena Exp $
+// $Id: AtariVox.cxx 1738 2009-05-21 22:39:32Z stephena $
 //============================================================================
 
-#ifdef ATARIVOX_SUPPORT
-
-#include "Event.hxx"
+#include "MT24LC256.hxx"
+#include "SerialPort.hxx"
+#include "System.hxx"
 #include "AtariVox.hxx"
-#include "SpeakJet.hxx"
-
-#define DEBUG_ATARIVOX 0
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-AtariVox::AtariVox(Jack jack, const Event& event)
-    : Controller(jack, event),
-      mySpeakJet(0),
-      mySystem(0),
-      myPinState(0),
-      myShiftCount(0),
-      myShiftRegister(0),
-      myLastDataWriteCycle(0)
+AtariVox::AtariVox(Jack jack, const Event& event, const System& system,
+                   const SerialPort& port, const string& portname,
+                   const string& eepromfile)
+  : Controller(jack, event, system, Controller::AtariVox),
+    mySerialPort((SerialPort&)port),
+    myEEPROM(NULL),
+    myShiftCount(0),
+    myShiftRegister(0),
+    myLastDataWriteCycle(0)
 {
-  myType = Controller::AtariVox;
-  mySpeakJet = new SpeakJet();
+  if(mySerialPort.openPort(portname))
+    myAboutString = " (using serial port \'" + portname + "\')";
+  else
+    myAboutString = " (invalid serial port \'" + portname + "\')";
+
+  myEEPROM = new MT24LC256(eepromfile, system);
+
+  myDigitalPinState[One] = myDigitalPinState[Two] =
+  myDigitalPinState[Three] = myDigitalPinState[Four] = true;
+
+  myAnalogPinValue[Five] = myAnalogPinValue[Nine] = maximumResistance;
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 AtariVox::~AtariVox()
 {
-}
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void AtariVox::setSystem(System *system) {
-  mySystem = system;
+  mySerialPort.closePort();
+  delete myEEPROM;
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 bool AtariVox::read(DigitalPin pin)
 {
-  // For now, always return true, meaning the device is ready
-/*
-  if(DEBUG_ATARIVOX)
-    cerr << "AtariVox: read from SWCHA" << endl;
-*/
-  return true;
-}
+  // We need to override the Controller::read() method, since the timing
+  // of the actual read is important for the EEPROM (we can't just read
+  // 60 times per second in the ::update() method)
+  switch(pin)
+  {
+    // Pin 2: SpeakJet READY
+    case Two:
+      // For now, we just assume the device is always ready
+      return myDigitalPinState[Two] = true;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Int32 AtariVox::read(AnalogPin)
-{
-  // Analog pins are not connected in AtariVox, so we have infinite resistance 
-  return maximumResistance;
-}
+    // Pin 3: EEPROM SDA
+    //        input data from the 24LC256 EEPROM using the I2C protocol
+    case Three:
+      return myDigitalPinState[Three] = myEEPROM->readSDA();
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void AtariVox::clockDataIn(bool value)
-{
-  // bool oldValue = myPinState & 0x01;
-  myPinState = (myPinState & 0xfe) | value;
-
-  uInt32 cycle = mySystem->cycles();
-  if(DEBUG_ATARIVOX)
-    cerr << "AtariVox: value "
-         << value
-         << " written to DATA line at "
-         << mySystem->cycles()
-         << " (-"
-         << myLastDataWriteCycle
-         << "=="
-         << (mySystem->cycles() - myLastDataWriteCycle)
-         << ")"
-         << endl;
-
-  if(value && (myShiftCount == 0)) {
-    if(DEBUG_ATARIVOX)
-      cerr << "value && (myShiftCount == 0), returning" << endl;
-    return;
-  }
-
-  if(cycle < myLastDataWriteCycle || cycle > myLastDataWriteCycle + 1000) {
-    // If this is the first write this frame, or if it's been a long time
-    // since the last write, start a new data byte.
-    myShiftRegister = 0;
-    myShiftCount = 0;
-  }
-
-  if(cycle < myLastDataWriteCycle || cycle >= myLastDataWriteCycle + 62) {
-    // If this is the first write this frame, or if it's been 62 cycles
-    // since the last write, shift this bit into the current byte.
-    if(DEBUG_ATARIVOX)
-      cerr << "cycle >= myLastDataWriteCycle + 62, shiftIn("
-           << value << ")" << endl;
-    shiftIn(value);
-  }
-
-  myLastDataWriteCycle = cycle;
-}
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void AtariVox::shiftIn(bool value)
-{
-  myShiftRegister >>= 1;
-  myShiftRegister |= (value << 15);
-  if(++myShiftCount == 10) {
-    myShiftCount = 0;
-    myShiftRegister >>= 6;
-    if(!(myShiftRegister & (1<<9)))
-      cerr << "AtariVox: bad start bit" << endl;
-    else if((myShiftRegister & 1))
-      cerr << "AtariVox: bad stop bit" << endl;
-    else
-    {
-      uInt8 data = ((myShiftRegister >> 1) & 0xff);
-      cerr << "AtariVox: output byte " << ((int)(data)) << endl;
-      mySpeakJet->write(data);
-    }
-    myShiftRegister = 0;
+    default:
+      return Controller::read(pin);
   }
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void AtariVox::write(DigitalPin pin, bool value)
 {
-  if(DEBUG_ATARIVOX)
-    cerr << "AtariVox: write to SWCHA" << endl;
-
   // Change the pin state based on value
   switch(pin)
   {
-    // Pin 1 is the DATA line, used to output serial data to the
-    // speakjet
+    // Pin 1: SpeakJet DATA
+    //        output serial data to the speakjet
     case One:
-		clockDataIn(value);
+      myDigitalPinState[One] = value;
+      clockDataIn(value);
       break;
   
-    // Pin 2 is the SDA line, used to output data to the 24LC256
-    // serial EEPROM, using the I2C protocol.
-    // I'm not even trying to emulate this right now :(
-    case Two:
-      if(DEBUG_ATARIVOX)
-        cerr << "AtariVox: value "
-             << value
-             << " written to SDA line at cycle "
-             << mySystem->cycles()
-             << endl;
-      break;
-
-    // Pin 2 is the SCLK line, used to output clock data to the 24LC256
-    // serial EEPROM, using the I2C protocol.
-    // I'm not even trying to emulate this right now :(
+    // Pin 3: EEPROM SDA
+    //        output data to the 24LC256 EEPROM using the I2C protocol
     case Three:
-      if(DEBUG_ATARIVOX)
-        cerr << "AtariVox: value "
-             << value
-             << " written to SCLK line at cycle "
-             << mySystem->cycles()
-             << endl;
+      myDigitalPinState[Three] = value;
+      myEEPROM->writeSDA(value);
       break;
 
+    // Pin 4: EEPROM SCL
+    //        output clock data to the 24LC256 EEPROM using the I2C protocol
     case Four:
+      myDigitalPinState[Four] = value;
+      myEEPROM->writeSCL(value);
+      break;
+
     default:
       break;
   } 
 }
 
-#endif
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void AtariVox::clockDataIn(bool value)
+{
+  uInt32 cycle = mySystem.cycles();
+
+  if(value && (myShiftCount == 0))
+    return;
+
+  // If this is the first write this frame, or if it's been a long time
+  // since the last write, start a new data byte.
+  if(cycle < myLastDataWriteCycle)
+  {
+    myShiftRegister = 0;
+    myShiftCount = 0;
+  }
+  else if(cycle > myLastDataWriteCycle + 1000)
+  {
+    myShiftRegister = 0;
+    myShiftCount = 0;
+  }
+
+  // If this is the first write this frame, or if it's been 62 cycles
+  // since the last write, shift this bit into the current byte.
+  if(cycle < myLastDataWriteCycle || cycle >= myLastDataWriteCycle + 62)
+  {
+    myShiftRegister >>= 1;
+    myShiftRegister |= (value << 15);
+    if(++myShiftCount == 10)
+    {
+      myShiftCount = 0;
+      myShiftRegister >>= 6;
+      if(!(myShiftRegister & (1<<9)))
+        cerr << "AtariVox: bad start bit" << endl;
+      else if((myShiftRegister & 1))
+        cerr << "AtariVox: bad stop bit" << endl;
+      else
+      {
+        uInt8 data = ((myShiftRegister >> 1) & 0xff);
+        mySerialPort.writeByte(&data);
+      }
+      myShiftRegister = 0;
+    }
+  }
+
+  myLastDataWriteCycle = cycle;
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void AtariVox::systemCyclesReset()
+{
+  myLastDataWriteCycle -= mySystem.cycles();
+
+  // The EEPROM keeps track of cycle counts, and needs to know when the
+  // cycles are reset
+  myEEPROM->systemCyclesReset();
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+string AtariVox::about() const
+{
+  return Controller::about() + myAboutString;
+}

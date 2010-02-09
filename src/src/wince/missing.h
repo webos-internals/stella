@@ -14,7 +14,7 @@
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
 // Windows CE Port by Kostas Nakos
-// $Id: missing.h,v 1.6 2007/01/23 09:44:55 knakos Exp $
+// $Id: missing.h 1724 2009-05-13 13:55:40Z stephena $
 //============================================================================
 
 #ifndef _WCE_MISSING_H_

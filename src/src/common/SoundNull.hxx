@@ -8,20 +8,18 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: SoundNull.hxx,v 1.7 2008/02/06 13:45:19 stephena Exp $
+// $Id: SoundNull.hxx 1849 2009-08-05 16:05:34Z stephena $
 //============================================================================
 
 #ifndef SOUND_NULL_HXX
 #define SOUND_NULL_HXX
 
 class OSystem;
-class Serializer;
-class Deserializer;
 
 #include "bspf.hxx"
 #include "Sound.hxx"
@@ -31,7 +29,7 @@ class Deserializer;
   is completely disabled.
 
   @author Stephen Anthony
-  @version $Id: SoundNull.hxx,v 1.7 2008/02/06 13:45:19 stephena Exp $
+  @version $Id: SoundNull.hxx 1849 2009-08-05 16:05:34Z stephena $
 */
 class SoundNull : public Sound
 {
@@ -77,13 +75,13 @@ class SoundNull : public Sound
 
       @param framerate The base framerate depending on NTSC or PAL ROM
     */
-    void setFrameRate(uInt32 framerate) { }
+    void setFrameRate(float framerate) { }
 
     /**
       Initializes the sound device.  This must be called before any
       calls are made to derived methods.
     */
-    void initialize() { }
+    void open() { }
 
     /**
       Should be called to close the sound device.  Once called the sound
@@ -138,12 +136,12 @@ class SoundNull : public Sound
 
 public:
     /**
-      Loads the current state of this device from the given Deserializer.
+      Loads the current state of this device from the given Serializer.
 
-      @param in The deserializer device to load from.
+      @param in The Serializer device to load from.
       @return The result of the load.  True on success, false on failure.
     */
-    bool load(Deserializer& in);
+    bool load(Serializer& in);
 
     /**
       Saves the current state of this device to the given Serializer.

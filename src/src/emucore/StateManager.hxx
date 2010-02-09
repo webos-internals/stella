@@ -8,12 +8,12 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: StateManager.hxx,v 1.4 2008/02/06 13:45:22 stephena Exp $
+// $Id: StateManager.hxx 1849 2009-08-05 16:05:34Z stephena $
 //============================================================================
 
 #ifndef STATE_MANAGER_HXX
@@ -21,7 +21,6 @@
 
 class OSystem;
 
-#include "Deserializer.hxx"
 #include "Serializer.hxx"
 
 /**
@@ -30,7 +29,7 @@ class OSystem;
   played back.
 
   @author  Stephen Anthony
-  @version $Id: StateManager.hxx,v 1.4 2008/02/06 13:45:22 stephena Exp $
+  @version $Id: StateManager.hxx 1849 2009-08-05 16:05:34Z stephena $
 */
 class StateManager
 {
@@ -79,6 +78,26 @@ class StateManager
     void changeState();
 
     /**
+      Load a state into the current system from the given Serializer.
+      No messages are printed to the screen.
+
+      @param in  The Serializer object to use
+
+      @return  False on any load errors, else true
+    */
+    bool loadState(Serializer& in);
+
+    /**
+      Save the current state from the system into the given Serializer.
+      No messages are printed to the screen.
+
+      @param out  The Serializer object to use
+
+      @return  False on any save errors, else true
+    */
+    bool saveState(Serializer& out);
+
+    /**
       Resets manager to defaults
     */
     void reset();
@@ -119,8 +138,8 @@ class StateManager
     string myMD5;
 
     // Serializer classes used to save/load the eventstream
-    Serializer   myMovieWriter;
-    Deserializer myMovieReader;
+    Serializer myMovieWriter;
+    Serializer myMovieReader;
 };
 
 #endif

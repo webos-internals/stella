@@ -8,16 +8,13 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: SoundNull.cxx,v 1.8 2008/02/06 13:45:19 stephena Exp $
+// $Id: SoundNull.cxx 1849 2009-08-05 16:05:34Z stephena $
 //============================================================================
-
-#include "Serializer.hxx"
-#include "Deserializer.hxx"
 
 #include "bspf.hxx"
 
@@ -27,7 +24,7 @@
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 SoundNull::SoundNull(OSystem* osystem)
-    : Sound(osystem)
+  : Sound(osystem)
 {
   // Show some info
   if(myOSystem->settings().getBool("showinfo"))
@@ -40,9 +37,9 @@ SoundNull::~SoundNull()
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-bool SoundNull::load(Deserializer& in)
+bool SoundNull::load(Serializer& in)
 {
-  string soundDevice = "TIASound";
+  const string& soundDevice = "TIASound";
   if(in.getString() != soundDevice)
     return false;
 

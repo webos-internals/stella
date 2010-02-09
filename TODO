@@ -1,7 +1,3 @@
 MISSING/BUGS/TODO:
 
-ROM Launcher crashes:
-root@palm-webos-device: # ./stella
-stella: src/gui/Rect.hxx:75: GUI::Rect::Rect(int, int, int, int): Assertion `isValidRect()' failed.
-Aborted
-
+- switching to landscape mode (ie. turning "fullscreen" off) freezes the screen

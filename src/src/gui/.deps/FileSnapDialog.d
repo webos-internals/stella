@@ -21,13 +21,12 @@ src/gui/FileSnapDialog.o: src/gui/FileSnapDialog.cxx \
   /usr/local/include/SDL/SDL_version.h src/emucore/EventHandler.hxx \
   src/common/Array.hxx src/emucore/Event.hxx src/emucore/Control.hxx \
   src/emucore/Serializable.hxx src/emucore/Serializer.hxx \
-  src/emucore/Deserializer.hxx src/gui/StringList.hxx \
-  src/common/VideoModeList.hxx src/common/Array.hxx src/gui/GuiObject.hxx \
-  src/emucore/OSystem.hxx src/emucore/FrameBuffer.hxx src/gui/Rect.hxx \
-  src/emucore/FSNode.hxx src/gui/DialogContainer.hxx \
-  src/emucore/EventHandler.hxx src/gui/Stack.hxx \
-  src/gui/EditTextWidget.hxx src/gui/EditableWidget.hxx \
-  src/gui/LauncherDialog.hxx src/emucore/Settings.hxx \
+  src/gui/StringList.hxx src/emucore/Settings.hxx src/gui/Rect.hxx \
+  src/gui/GuiObject.hxx src/emucore/OSystem.hxx \
+  src/emucore/FrameBuffer.hxx src/gui/Rect.hxx src/emucore/FSNode.hxx \
+  src/common/SharedPtr.hxx src/gui/EditTextWidget.hxx \
+  src/gui/EditableWidget.hxx src/gui/LauncherDialog.hxx \
+  src/gui/StringList.hxx src/common/Stack.hxx src/emucore/Settings.hxx \
   src/gui/FileSnapDialog.hxx
 
 src/emucore/m6502/src/bspf/src/bspf.hxx:
@@ -116,13 +115,11 @@ src/emucore/Serializable.hxx:
 
 src/emucore/Serializer.hxx:
 
-src/emucore/Deserializer.hxx:
-
 src/gui/StringList.hxx:
 
-src/common/VideoModeList.hxx:
+src/emucore/Settings.hxx:
 
-src/common/Array.hxx:
+src/gui/Rect.hxx:
 
 src/gui/GuiObject.hxx:
 
@@ -134,17 +131,17 @@ src/gui/Rect.hxx:
 
 src/emucore/FSNode.hxx:
 
-src/gui/DialogContainer.hxx:
-
-src/emucore/EventHandler.hxx:
-
-src/gui/Stack.hxx:
+src/common/SharedPtr.hxx:
 
 src/gui/EditTextWidget.hxx:
 
 src/gui/EditableWidget.hxx:
 
 src/gui/LauncherDialog.hxx:
+
+src/gui/StringList.hxx:
+
+src/common/Stack.hxx:
 
 src/emucore/Settings.hxx:
 

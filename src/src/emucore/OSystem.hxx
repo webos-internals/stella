@@ -8,12 +8,12 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: OSystem.hxx,v 1.62 2008/03/14 19:34:56 stephena Exp $
+// $Id: OSystem.hxx 1824 2009-07-01 16:04:28Z stephena $
 //============================================================================
 
 #ifndef OSYSTEM_HXX
@@ -28,6 +28,7 @@ class Launcher;
 class Menu;
 class Properties;
 class PropertiesSet;
+class SerialPort;
 class Settings;
 class Sound;
 class StateManager;
@@ -55,7 +56,7 @@ typedef Common::Array<Resolution> ResolutionList;
   other objects belong.
 
   @author  Stephen Anthony
-  @version $Id: OSystem.hxx,v 1.62 2008/03/14 19:34:56 stephena Exp $
+  @version $Id: OSystem.hxx 1824 2009-07-01 16:04:28Z stephena $
 */
 class OSystem
 {
@@ -126,35 +127,42 @@ class OSystem
 
       @return The console object
     */
-    inline Console& console(void) const { return *myConsole; }
+    inline Console& console() const { return *myConsole; }
+
+    /**
+      Get the serial port of the system.
+
+      @return The serial port object
+    */
+    inline SerialPort& serialPort() const { return *mySerialPort; }
 
     /**
       Get the settings menu of the system.
 
       @return The settings menu object
     */
-    inline Menu& menu(void) const { return *myMenu; }
+    inline Menu& menu() const { return *myMenu; }
 
     /**
       Get the command menu of the system.
 
       @return The command menu object
     */
-    inline CommandMenu& commandMenu(void) const { return *myCommandMenu; }
+    inline CommandMenu& commandMenu() const { return *myCommandMenu; }
 
     /**
       Get the ROM launcher of the system.
 
       @return The launcher object
     */
-    inline Launcher& launcher(void) const { return *myLauncher; }
+    inline Launcher& launcher() const { return *myLauncher; }
 
     /**
       Get the state manager of the system.
 
       @return The statemanager object
     */
-    inline StateManager& state(void) const { return *myStateManager; }
+    inline StateManager& state() const { return *myStateManager; }
 
 #ifdef DEBUGGER_SUPPORT
     /**
@@ -162,7 +170,7 @@ class OSystem
 
       @return The debugger object
     */
-    inline Debugger& debugger(void) const { return *myDebugger; }
+    inline Debugger& debugger() const { return *myDebugger; }
 #endif
 
 #ifdef CHEATCODE_SUPPORT
@@ -171,8 +179,15 @@ class OSystem
 
       @return The cheatmanager object
     */
-    inline CheatManager& cheat(void) const { return *myCheatManager; }
+    inline CheatManager& cheat() const { return *myCheatManager; }
 #endif
+
+    /**
+      Get the small font object of the system
+
+      @return The font reference
+    */
+    inline const GUI::Font& smallFont() const { return *mySmallFont; }
 
     /**
       Get the font object of the system
@@ -201,7 +216,7 @@ class OSystem
 
       @param framerate  The video framerate to use
     */
-    virtual void setFramerate(uInt32 framerate);
+    virtual void setFramerate(float framerate);
 
     /**
       Set all config file paths for the OSystem.
@@ -218,13 +233,13 @@ class OSystem
 
       @return  The video framerate currently in use
     */
-    inline uInt32 frameRate() const { return myDisplayFrameRate; }
+    inline float frameRate() const { return myDisplayFrameRate; }
 
     /**
       Get the maximum dimensions of a window for the video hardware.
     */
-    const uInt32 desktopWidth() const  { return myDesktopWidth; }
-    const uInt32 desktopHeight() const { return myDesktopHeight; }
+    inline uInt32 desktopWidth() const  { return myDesktopWidth; }
+    inline uInt32 desktopHeight() const { return myDesktopHeight; }
 
     /**
       Get the supported fullscreen resolutions for the video hardware.
@@ -234,22 +249,24 @@ class OSystem
     const ResolutionList& supportedResolutions() const { return myResolutions; }
 
     /**
-      Return the default directory for storing data.
+      Return the default full/complete directory name for storing data.
     */
     const string& baseDir() const { return myBaseDir; }
 
     /**
-      Return the directory for storing state files.
+      Return the full/complete directory name for storing state files.
     */
     const string& stateDir() const { return myStateDir; }
 
     /**
-      This method should be called to get the full path of the gamelist
-      cache file (used by the Launcher to show a listing of available games).
-
-      @return String representing the full path of the gamelist cache file.
+      Return the full/complete directory name for storing PNG snapshots.
     */
-    const string& cacheFile() const { return myGameListCacheFile; }
+    const string& snapshotDir() const { return mySnapshotDir; }
+
+    /**
+      Return the full/complete directory name for storing EEPROM files.
+    */
+    const string& eepromDir() const { return myEEPROMDir; }
 
     /**
       This method should be called to get the full path of the cheat file.
@@ -290,12 +307,8 @@ class OSystem
     const string& romFile() const { return myRomFile; }
 
     /**
-      Switches between software and OpenGL framebuffer modes.
-    */
-    void toggleFrameBuffer();
-
-    /**
-      Creates a new game console from the specified romfile.
+      Creates a new game console from the specified romfile, and correctly
+      initializes the system state to start emulation of the Console.
 
       @param romfile  The full pathname of the ROM to use
       @param md5      The MD5sum of the ROM
@@ -312,8 +325,10 @@ class OSystem
 
     /**
       Creates a new ROM launcher, to select a new ROM to emulate.
+
+      @return  True on successful creation, otherwise false
     */
-    void createLauncher();
+    bool createLauncher();
 
     /**
       Gets all possible info about the ROM by creating a temporary
@@ -330,27 +345,6 @@ class OSystem
       @return  The supported features
     */
     const string& features() const { return myFeatures; }
-
-    /**
-      Open the given ROM and return an array containing its contents.
-
-      @param rom    The absolute pathname of the ROM file
-      @param md5    The md5 calculated from the ROM file
-      @param image  A pointer to store the ROM data
-                      Note, the calling method is responsible for deleting this
-      @param size   The amount of data read into the image array
-
-      @return  False on any errors, else true
-    */
-    bool openROM(const string& rom, string& md5, uInt8** image, int* size);
-
-    /**
-      Is this a valid ROM filename (does it have a valid extension?).
-
-      @param filename  Filename of potential ROM file
-      @param extension The extension extracted from the given file
-     */
-    bool isValidRomName(const string& filename, string& extension);
 
     /**
       Calculate the MD5sum of the given file.
@@ -374,7 +368,7 @@ class OSystem
 
       @return Current time in microseconds.
     */
-    virtual uInt32 getTicks() = 0;
+    virtual uInt64 getTicks() const;
 
     //////////////////////////////////////////////////////////////////////
     // The following methods are system-specific and can be overrided in
@@ -427,7 +421,7 @@ class OSystem
     /**
       Query the OSystem video hardware for resolution information.
     */
-    virtual void queryVideoHardware();
+    virtual bool queryVideoHardware();
 
     /**
       Set the base directory for all Stella files (these files may be
@@ -436,14 +430,9 @@ class OSystem
     void setBaseDir(const string& basedir);
 
     /**
-      Set the location of the gamelist cache file
-    */
-    void setCacheFile(const string& cachefile) { myGameListCacheFile = cachefile; }
-
-    /**
       Set the locations of config file
     */
-    void setConfigFile(const string& file) { myConfigFile = file; }
+    void setConfigFile(const string& file);
 
   protected:
     // Pointer to the EventHandler object
@@ -463,6 +452,9 @@ class OSystem
 
     // Pointer to the (currently defined) Console object
     Console* myConsole;
+
+    // Pointer to the serial port object
+    SerialPort* mySerialPort;
 
     // Pointer to the Menu object
     Menu* myMenu;
@@ -489,7 +481,7 @@ class OSystem
     ResolutionList myResolutions;
 
     // Number of times per second to iterate through the main loop
-    uInt32 myDisplayFrameRate;
+    float myDisplayFrameRate;
 
     // Time per frame for a video update, based on the current framerate
     uInt32 myTimePerFrame;
@@ -501,16 +493,21 @@ class OSystem
     enum { kNumUIPalettes = 2 };
     string myBaseDir;
     string myStateDir;
+    string mySnapshotDir;
+    string myEEPROMDir;
 
     string myCheatFile;
     string myConfigFile;
     string myPaletteFile;
     string myPropertiesFile;
 
-    string myGameListCacheFile;
     string myRomFile;
+    string myRomMD5;
 
     string myFeatures;
+
+    // The font object to use when space is very limited
+    GUI::Font* mySmallFont;
 
     // The font object to use for the normal in-game GUI
     GUI::Font* myFont;
@@ -523,11 +520,11 @@ class OSystem
 
     // Indicates whether the main processing loop should proceed
     struct TimingInfo {
-      uInt32 start;
-      uInt32 current;
-      uInt32 virt;
-      uInt32 totalTime;
-      uInt32 totalFrames;
+      uInt64 start;
+      uInt64 current;
+      uInt64 virt;
+      uInt64 totalTime;
+      uInt64 totalFrames;
     };
     TimingInfo myTimingInfo;
 
@@ -537,11 +534,12 @@ class OSystem
   private:
     /**
       Creates the various framebuffers/renderers available in this system
-      (for now, that means either 'software' or 'opengl').
+      (for now, that means either 'software' or 'opengl').  Note that
+      it will only create one type per run of Stella.
 
       @return Success or failure of the framebuffer creation
     */
-    bool createFrameBuffer(bool showmessage = false);
+    bool createFrameBuffer();
 
     /**
       Creates the various sound devices available in this system
@@ -550,12 +548,38 @@ class OSystem
     void createSound();
 
     /**
-      Query valid info for creating a valid console.
+      Creates an actual Console object based on the given info.
 
-      @return Success or failure for a valid console
+      @param romfile  The full pathname of the ROM to use
+      @param md5      The MD5sum of the ROM
+
+      @return  The actual Console object, otherwise NULL
+               (calling method is responsible for deleting it)
     */
-    bool queryConsoleInfo(const uInt8* image, uInt32 size, const string& md5,
-                          Cartridge** cart, Properties& props);
+    Console* openConsole(const string& romfile, string& md5);
+
+    /**
+      Open the given ROM and return an array containing its contents.
+      Also, the properties database is updated with a valid ROM name
+      for this ROM (if necessary).
+
+      @param rom    The absolute pathname of the ROM file
+      @param md5    The md5 calculated from the ROM file
+                    (will be recalculated if necessary)
+      @param size   The amount of data read into the image array
+
+      @return  Pointer to the array, with size >=0 indicating valid data
+               (calling method is responsible for deleting it)
+    */
+    uInt8* openROM(string rom, string& md5, uInt32& size);
+
+    /**
+      Gets all possible info about the given console.
+
+      @param console  The console to use
+      @return  Some information about this console
+    */
+    string getROMInfo(const Console* console);
 
     /**
       Initializes the timing so that the mainloop is reset to its

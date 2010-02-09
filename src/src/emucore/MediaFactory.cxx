@@ -8,12 +8,12 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: MediaFactory.cxx,v 1.12 2008/02/06 13:45:22 stephena Exp $
+// $Id: MediaFactory.cxx 1768 2009-06-12 13:29:26Z stephena $
 //============================================================================
 
 ////////////////////////////////////////////////////////////////////
@@ -60,8 +60,6 @@ FrameBuffer* MediaFactory::createVideo(OSystem* osystem)
     const string& gl_lib = osystem->settings().getString("gl_lib");
     if(FrameBufferGL::loadLibrary(gl_lib))
       fb = new FrameBufferGL(osystem);
-    else
-      cerr << "ERROR: Couldn't dynamically load OpenGL library ...\n";
   }
 #endif
 
@@ -80,16 +78,6 @@ FrameBuffer* MediaFactory::createVideo(OSystem* osystem)
 
   // This should never happen
   assert(fb != NULL);
-  switch(fb->type())
-  {
-    case kSoftBuffer:
-      osystem->settings().setString("video", "soft");
-      break;
-
-    case kGLBuffer:
-      osystem->settings().setString("video", "gl");
-      break;
-  }
 
   return fb;
 }

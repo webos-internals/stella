@@ -18,17 +18,17 @@ src/emucore/FrameBuffer.o: src/emucore/FrameBuffer.cxx \
   /usr/local/include/SDL/SDL_version.h src/common/Array.hxx \
   src/emucore/m6502/src/bspf/src/bspf.hxx src/emucore/Event.hxx \
   src/emucore/Control.hxx src/emucore/Serializable.hxx \
-  src/emucore/Serializer.hxx src/emucore/Deserializer.hxx \
-  src/gui/StringList.hxx src/common/Array.hxx \
-  src/emucore/m6502/src/bspf/src/bspf.hxx src/gui/Stack.hxx \
+  src/emucore/Serializer.hxx src/gui/StringList.hxx src/common/Array.hxx \
+  src/emucore/m6502/src/bspf/src/bspf.hxx src/common/Stack.hxx \
   src/emucore/Console.hxx src/emucore/Props.hxx src/emucore/TIA.hxx \
   src/emucore/Sound.hxx src/emucore/m6502/src/Device.hxx \
   src/emucore/Serializable.hxx src/emucore/m6502/src/bspf/src/bspf.hxx \
-  src/emucore/MediaSrc.hxx src/emucore/Cart.hxx src/emucore/M6532.hxx \
-  src/emucore/AtariVox.hxx src/emucore/EventHandler.hxx src/gui/Font.hxx \
-  src/gui/Launcher.hxx src/gui/Menu.hxx src/emucore/OSystem.hxx \
-  src/emucore/FrameBuffer.hxx src/common/VideoModeList.hxx \
-  src/common/Array.hxx src/emucore/Settings.hxx src/common/stella.xpm
+  src/emucore/m6502/src/System.hxx src/emucore/m6502/src/Device.hxx \
+  src/emucore/m6502/src/NullDev.hxx src/emucore/TIATables.hxx \
+  src/emucore/Cart.hxx src/emucore/M6532.hxx src/emucore/AtariVox.hxx \
+  src/emucore/EventHandler.hxx src/gui/Font.hxx src/gui/Launcher.hxx \
+  src/gui/Menu.hxx src/emucore/OSystem.hxx src/emucore/FrameBuffer.hxx \
+  src/emucore/Settings.hxx src/gui/Rect.hxx src/common/stella.xpm
 
 src/emucore/m6502/src/bspf/src/bspf.hxx:
 
@@ -102,15 +102,13 @@ src/emucore/Serializable.hxx:
 
 src/emucore/Serializer.hxx:
 
-src/emucore/Deserializer.hxx:
-
 src/gui/StringList.hxx:
 
 src/common/Array.hxx:
 
 src/emucore/m6502/src/bspf/src/bspf.hxx:
 
-src/gui/Stack.hxx:
+src/common/Stack.hxx:
 
 src/emucore/Console.hxx:
 
@@ -126,7 +124,13 @@ src/emucore/Serializable.hxx:
 
 src/emucore/m6502/src/bspf/src/bspf.hxx:
 
-src/emucore/MediaSrc.hxx:
+src/emucore/m6502/src/System.hxx:
+
+src/emucore/m6502/src/Device.hxx:
+
+src/emucore/m6502/src/NullDev.hxx:
+
+src/emucore/TIATables.hxx:
 
 src/emucore/Cart.hxx:
 
@@ -146,10 +150,8 @@ src/emucore/OSystem.hxx:
 
 src/emucore/FrameBuffer.hxx:
 
-src/common/VideoModeList.hxx:
-
-src/common/Array.hxx:
-
 src/emucore/Settings.hxx:
+
+src/gui/Rect.hxx:
 
 src/common/stella.xpm:

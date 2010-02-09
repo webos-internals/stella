@@ -8,12 +8,12 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: PopUpWidget.hxx,v 1.20 2008/02/06 13:45:24 stephena Exp $
+// $Id: PopUpWidget.hxx 1724 2009-05-13 13:55:40Z stephena $
 //
 //   Based on code from ScummVM - Scumm Interpreter
 //   Copyright (C) 2002-2004 The ScummVM project
@@ -23,13 +23,13 @@
 #define POPUP_WIDGET_HXX
 
 class GUIObject;
-class PopUpDialog;
 
 #include "bspf.hxx"
 
 #include "Array.hxx"
 #include "Command.hxx"
-#include "Dialog.hxx"
+#include "ContextMenu.hxx"
+#include "StringList.hxx"
 #include "Widget.hxx"
 
 
@@ -42,111 +42,42 @@ class PopUpDialog;
  */
 class PopUpWidget : public Widget, public CommandSender
 {
-  friend class PopUpDialog;
-
-  struct Entry {
-    string name;
-    int tag;
-  };
-
-  typedef Common::Array<Entry> EntryList;
-
-  protected:
-    EntryList _entries;
-    int       _selectedItem;
-    string    _label;
-    int       _labelWidth;
-
   public:
     PopUpWidget(GuiObject* boss, const GUI::Font& font,
-                int x, int y, int w, int h,
+                int x, int y, int w, int h, const StringMap& items,
                 const string& label, int labelWidth = 0, int cmd = 0);
     ~PopUpWidget();
 
+    /** Add the given items to the widget. */
+
+    /** Various selection methods passed directly to the underlying menu
+        See ContextMenu.hxx for more information. */
+    void addItems(const StringMap& items) { myMenu->addItems(items);       }
+    void setSelected(int item)            { myMenu->setSelected(item);     }
+    void setSelected(const string& tag,
+                     const string& def)   { myMenu->setSelected(tag, def); }
+    void setSelectedMax()                 { myMenu->setSelectedMax();      }
+    void clearSelection()                 { myMenu->clearSelection();      }
+
+    int getSelected() const               { return myMenu->getSelected();     }
+    const string& getSelectedName() const { return myMenu->getSelectedName(); }
+    const string& getSelectedTag() const  { return myMenu->getSelectedTag();  }
+
     bool wantsFocus()  { return true; }
-
-    void appendEntry(const string& entry, int tag = (int)-1);
-    void clearEntries();
-
-    /** Select the entry at the given index. */
-    void setSelected(int item);
-	
-    /** Select the first entry matching the given name. */
-    void setSelectedName(const string& name);
-
-    /** Select the first entry matching the given tag. */
-    void setSelectedTag(int tag);
-
-    /** Select the highest/last entry in the internal list. */
-    void setSelectedMax();
-
-    int getSelected() const
-      { return _selectedItem; }
-    int getSelectedTag() const
-      { return (_selectedItem >= 0) ? _entries[_selectedItem].tag : (int)-1; }
-    const string& getSelectedString() const
-      { return (_selectedItem >= 0) ? _entries[_selectedItem].name : EmptyString; }
 
   protected:
     void handleMouseDown(int x, int y, int button, int clickCount);
     bool handleEvent(Event::Type e);
+    void handleCommand(CommandSender* sender, int cmd, int data, int id);
     void drawWidget(bool hilite);
 
-  protected:
-    int	_cmd;
-
   private:
-    PopUpDialog* myPopUpDialog;
+    ContextMenu* myMenu;
     int myArrowsY;
     int myTextY;
-};
 
-//
-// PopUpDialog
-//
-class PopUpDialog : public Dialog
-{
-  friend class PopUpWidget;
-
-  public:
-    PopUpDialog(PopUpWidget* boss, int clickX, int clickY);
-	
-    void drawDialog();
-    void center() { recalc(); }
-
-  protected:
-    void handleMouseDown(int x, int y, int button, int clickCount);
-    void handleMouseWheel(int x, int y, int direction);
-    void handleMouseMoved(int x, int y, int button);
-    void handleKeyDown(int ascii, int keycode, int modifiers);  // Scroll through entries with arrow keys etc
-    void handleJoyDown(int stick, int button);
-    void handleJoyAxis(int stick, int axis, int value);
-    bool handleJoyHat(int stick, int hat, int value);
-    void handleEvent(Event::Type e);
-
-    void drawMenuEntry(int entry, bool hilite);
-
-    void recalc();
-    int findItem(int x, int y) const;
-    void setSelection(int item);
-    bool isMouseDown();
-	
-    void moveUp();
-    void moveDown();
-
-  private:
-    void sendSelection();
-    void cancelSelection();
-
-  protected:
-    PopUpWidget* _popUpBoss;
-    int          _clickX, _clickY;
-    uInt8*       _buffer;
-    int          _selection;
-    int          _oldSelection;
-    int          _openTime;
-    bool         _twoColumns;
-    int          _entriesPerColumn;
+    string _label;
+    int    _labelWidth;
 };
 
 #endif

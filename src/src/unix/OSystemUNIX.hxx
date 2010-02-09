@@ -8,12 +8,12 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: OSystemUNIX.hxx,v 1.17 2008/02/06 13:45:24 stephena Exp $
+// $Id: OSystemUNIX.hxx 1824 2009-07-01 16:04:28Z stephena $
 //============================================================================
 
 #ifndef OSYSTEM_UNIX_HXX
@@ -25,7 +25,7 @@
   This class defines UNIX-like OS's (Linux) system specific settings.
 
   @author  Stephen Anthony
-  @version $Id: OSystemUNIX.hxx,v 1.17 2008/02/06 13:45:24 stephena Exp $
+  @version $Id: OSystemUNIX.hxx 1824 2009-07-01 16:04:28Z stephena $
 */
 class OSystemUNIX : public OSystem
 {
@@ -39,13 +39,6 @@ class OSystemUNIX : public OSystem
       Destructor
     */
     virtual ~OSystemUNIX();
-
-    /**
-      This method returns number of ticks in microseconds.
-
-      @return Current time in microseconds.
-    */
-    uInt32 getTicks();
 };
 
 #endif

@@ -8,19 +8,18 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: Serializable.hxx,v 1.2 2008/02/06 13:45:22 stephena Exp $
+// $Id: Serializable.hxx 1849 2009-08-05 16:05:34Z stephena $
 //============================================================================
 
 #ifndef SERIALIZABLE_HXX
 #define SERIALIZABLE_HXX
 
 #include "Serializer.hxx"
-#include "Deserializer.hxx"
 
 /**
   This class provides an interface for (de)serializing objects.
@@ -28,7 +27,7 @@
   method signatures as defined below.
 
   @author  Stephen Anthony
-  @version $Id: Serializable.hxx,v 1.2 2008/02/06 13:45:22 stephena Exp $
+  @version $Id: Serializable.hxx 1849 2009-08-05 16:05:34Z stephena $
 */
 class Serializable
 {
@@ -45,12 +44,12 @@ class Serializable
     virtual bool save(Serializer& out) const = 0;
 
     /**
-      Load the current state of the object from the given Deserializer.
+      Load the current state of the object from the given Serializer.
 
-      @param in  The Deserializer object to use
+      @param in  The Serializer object to use
       @return  False on any errors, else true
     */
-    virtual bool load(Deserializer& in) = 0;
+    virtual bool load(Serializer& in) = 0;
 
     /**
       Get a descriptor for the object name (used in error checking).

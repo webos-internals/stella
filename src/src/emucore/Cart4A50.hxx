@@ -8,12 +8,12 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: Cart4A50.hxx,v 1.12 2008/02/21 23:58:09 stephena Exp $
+// $Id: Cart4A50.hxx 1849 2009-08-05 16:05:34Z stephena $
 //============================================================================
 
 #ifndef CARTRIDGE4A50_HXX
@@ -37,7 +37,7 @@ class System;
   bytes of ROM.
 
   @author  Stephen Anthony & Eckhard Stolberg
-  @version $Id: Cart4A50.hxx,v 1.12 2008/02/21 23:58:09 stephena Exp $
+  @version $Id: Cart4A50.hxx 1849 2009-08-05 16:05:34Z stephena $
 */
 class Cartridge4A50 : public Cartridge
 {
@@ -114,12 +114,12 @@ class Cartridge4A50 : public Cartridge
     virtual bool save(Serializer& out) const;
 
     /**
-      Load the current state of this cart from the given Deserializer.
+      Load the current state of this cart from the given Serializer.
 
-      @param in  The Deserializer object to use
+      @param in  The Serializer object to use
       @return  False on any errors, else true
     */
-    virtual bool load(Deserializer& in);
+    virtual bool load(Serializer& in);
 
     /**
       Get a descriptor for the device name (used in error checking).

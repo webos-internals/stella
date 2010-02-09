@@ -13,7 +13,8 @@ src/common/RectList.o: src/common/RectList.cxx \
   /usr/local/include/SDL/SDL_video.h \
   /usr/local/include/SDL/SDL_joystick.h /usr/local/include/SDL/SDL_quit.h \
   /usr/local/include/SDL/SDL_loadso.h /usr/local/include/SDL/SDL_timer.h \
-  /usr/local/include/SDL/SDL_version.h src/common/RectList.hxx
+  /usr/local/include/SDL/SDL_version.h \
+  src/emucore/m6502/src/bspf/src/bspf.hxx src/common/RectList.hxx
 
 /usr/local/include/SDL/SDL.h:
 
@@ -66,5 +67,7 @@ src/common/RectList.o: src/common/RectList.cxx \
 /usr/local/include/SDL/SDL_timer.h:
 
 /usr/local/include/SDL/SDL_version.h:
+
+src/emucore/m6502/src/bspf/src/bspf.hxx:
 
 src/common/RectList.hxx:

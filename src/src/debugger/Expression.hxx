@@ -8,12 +8,12 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: Expression.hxx,v 1.6 2008/02/06 13:45:20 stephena Exp $
+// $Id: Expression.hxx 1724 2009-05-13 13:55:40Z stephena $
 //============================================================================
 
 #ifndef EXPRESSION_HXX
@@ -32,7 +32,7 @@
   can represent complex expression statements.
 
   @author  Stephen Anthony
-  @version $Id: Expression.hxx,v 1.6 2008/02/06 13:45:20 stephena Exp $
+  @version $Id: Expression.hxx 1724 2009-05-13 13:55:40Z stephena $
 */
 class Expression
 {

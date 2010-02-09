@@ -8,12 +8,12 @@
 // MM     MM 66  66 55  55 00  00 22
 // MM     MM  6666   5555   0000  222222
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: Device.hxx,v 1.8 2008/02/06 13:45:22 stephena Exp $
+// $Id: Device.hxx 1849 2009-08-05 16:05:34Z stephena $
 //============================================================================
 
 #ifndef DEVICE_HXX
@@ -29,7 +29,7 @@ class System;
   based system.
 
   @author  Bradford W. Mott
-  @version $Id: Device.hxx,v 1.8 2008/02/06 13:45:22 stephena Exp $
+  @version $Id: Device.hxx 1849 2009-08-05 16:05:34Z stephena $
 */
 class Device : public Serializable
 {
@@ -74,12 +74,12 @@ class Device : public Serializable
     virtual bool save(Serializer& out) const = 0;
 
     /**
-      Load the current state of this device from the given Deserializer.
+      Load the current state of this device from the given Serializer.
 
-      @param in  The Deserializer object to use
+      @param in  The Serializer object to use
       @return  False on any errors, else true
     */
-    virtual bool load(Deserializer& in) = 0;
+    virtual bool load(Serializer& in) = 0;
 
     /**
       Get a descriptor for the device name (used in error checking).

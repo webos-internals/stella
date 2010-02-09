@@ -1,10 +1,8 @@
 src/common/SoundNull.o: src/common/SoundNull.cxx \
-  src/emucore/Serializer.hxx src/emucore/m6502/src/bspf/src/bspf.hxx \
-  src/emucore/Deserializer.hxx src/emucore/m6502/src/bspf/src/bspf.hxx \
-  src/emucore/OSystem.hxx src/common/Array.hxx \
-  src/emucore/EventHandler.hxx /usr/local/include/SDL/SDL.h \
-  /usr/local/include/SDL/SDL_main.h /usr/local/include/SDL/SDL_stdinc.h \
-  /usr/local/include/SDL/SDL_config.h \
+  src/emucore/m6502/src/bspf/src/bspf.hxx src/emucore/OSystem.hxx \
+  src/common/Array.hxx src/emucore/EventHandler.hxx \
+  /usr/local/include/SDL/SDL.h /usr/local/include/SDL/SDL_main.h \
+  /usr/local/include/SDL/SDL_stdinc.h /usr/local/include/SDL/SDL_config.h \
   /usr/local/include/SDL/SDL_platform.h \
   /usr/local/include/SDL/begin_code.h /usr/local/include/SDL/close_code.h \
   /usr/local/include/SDL/SDL_audio.h /usr/local/include/SDL/SDL_error.h \
@@ -18,18 +16,12 @@ src/common/SoundNull.o: src/common/SoundNull.cxx \
   /usr/local/include/SDL/SDL_joystick.h /usr/local/include/SDL/SDL_quit.h \
   /usr/local/include/SDL/SDL_loadso.h /usr/local/include/SDL/SDL_timer.h \
   /usr/local/include/SDL/SDL_version.h src/emucore/Event.hxx \
-  src/emucore/Control.hxx src/emucore/Serializable.hxx \
-  src/emucore/Serializer.hxx src/emucore/Deserializer.hxx \
+  src/emucore/m6502/src/bspf/src/bspf.hxx src/emucore/Control.hxx \
+  src/emucore/Serializable.hxx src/emucore/Serializer.hxx \
   src/gui/StringList.hxx src/common/Array.hxx \
   src/emucore/m6502/src/bspf/src/bspf.hxx src/emucore/FrameBuffer.hxx \
-  src/common/VideoModeList.hxx src/common/Array.hxx \
-  src/emucore/Settings.hxx src/common/SoundNull.hxx src/emucore/Sound.hxx
-
-src/emucore/Serializer.hxx:
-
-src/emucore/m6502/src/bspf/src/bspf.hxx:
-
-src/emucore/Deserializer.hxx:
+  src/emucore/Settings.hxx src/gui/Rect.hxx src/emucore/Settings.hxx \
+  src/common/SoundNull.hxx src/emucore/Sound.hxx
 
 src/emucore/m6502/src/bspf/src/bspf.hxx:
 
@@ -93,13 +85,13 @@ src/emucore/EventHandler.hxx:
 
 src/emucore/Event.hxx:
 
+src/emucore/m6502/src/bspf/src/bspf.hxx:
+
 src/emucore/Control.hxx:
 
 src/emucore/Serializable.hxx:
 
 src/emucore/Serializer.hxx:
-
-src/emucore/Deserializer.hxx:
 
 src/gui/StringList.hxx:
 
@@ -109,9 +101,9 @@ src/emucore/m6502/src/bspf/src/bspf.hxx:
 
 src/emucore/FrameBuffer.hxx:
 
-src/common/VideoModeList.hxx:
+src/emucore/Settings.hxx:
 
-src/common/Array.hxx:
+src/gui/Rect.hxx:
 
 src/emucore/Settings.hxx:
 

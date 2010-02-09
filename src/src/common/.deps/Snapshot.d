@@ -18,9 +18,13 @@ src/common/Snapshot.o: src/common/Snapshot.cxx \
   src/common/Array.hxx src/emucore/Event.hxx \
   src/emucore/m6502/src/bspf/src/bspf.hxx src/emucore/Control.hxx \
   src/emucore/Serializable.hxx src/emucore/Serializer.hxx \
-  src/emucore/Deserializer.hxx src/gui/StringList.hxx \
-  src/common/Array.hxx src/emucore/m6502/src/bspf/src/bspf.hxx \
-  src/common/VideoModeList.hxx src/common/Array.hxx src/emucore/Props.hxx \
+  src/gui/StringList.hxx src/common/Array.hxx \
+  src/emucore/m6502/src/bspf/src/bspf.hxx src/emucore/Settings.hxx \
+  src/gui/Rect.hxx src/emucore/Props.hxx src/emucore/TIA.hxx \
+  src/emucore/Sound.hxx src/emucore/m6502/src/Device.hxx \
+  src/emucore/Serializable.hxx src/emucore/m6502/src/bspf/src/bspf.hxx \
+  src/emucore/m6502/src/System.hxx src/emucore/m6502/src/Device.hxx \
+  src/emucore/m6502/src/NullDev.hxx src/emucore/TIATables.hxx \
   src/common/Version.hxx src/common/Snapshot.hxx
 
 src/emucore/m6502/src/bspf/src/bspf.hxx:
@@ -93,19 +97,35 @@ src/emucore/Serializable.hxx:
 
 src/emucore/Serializer.hxx:
 
-src/emucore/Deserializer.hxx:
-
 src/gui/StringList.hxx:
 
 src/common/Array.hxx:
 
 src/emucore/m6502/src/bspf/src/bspf.hxx:
 
-src/common/VideoModeList.hxx:
+src/emucore/Settings.hxx:
 
-src/common/Array.hxx:
+src/gui/Rect.hxx:
 
 src/emucore/Props.hxx:
+
+src/emucore/TIA.hxx:
+
+src/emucore/Sound.hxx:
+
+src/emucore/m6502/src/Device.hxx:
+
+src/emucore/Serializable.hxx:
+
+src/emucore/m6502/src/bspf/src/bspf.hxx:
+
+src/emucore/m6502/src/System.hxx:
+
+src/emucore/m6502/src/Device.hxx:
+
+src/emucore/m6502/src/NullDev.hxx:
+
+src/emucore/TIATables.hxx:
 
 src/common/Version.hxx:
 

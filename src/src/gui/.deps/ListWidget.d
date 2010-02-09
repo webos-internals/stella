@@ -18,13 +18,13 @@ src/gui/ListWidget.o: src/gui/ListWidget.cxx src/emucore/OSystem.hxx \
   /usr/local/include/SDL/SDL_version.h src/emucore/Event.hxx \
   src/emucore/m6502/src/bspf/src/bspf.hxx src/emucore/Control.hxx \
   src/emucore/Serializable.hxx src/emucore/Serializer.hxx \
-  src/emucore/Deserializer.hxx src/gui/StringList.hxx \
-  src/common/Array.hxx src/emucore/m6502/src/bspf/src/bspf.hxx \
-  src/emucore/FrameBuffer.hxx src/common/VideoModeList.hxx \
-  src/common/Array.hxx src/gui/Widget.hxx src/emucore/Event.hxx \
+  src/gui/StringList.hxx src/common/Array.hxx \
+  src/emucore/m6502/src/bspf/src/bspf.hxx src/emucore/FrameBuffer.hxx \
+  src/emucore/Settings.hxx src/gui/Rect.hxx src/gui/Widget.hxx \
+  src/gui/Dialog.hxx src/gui/Command.hxx src/emucore/Event.hxx \
   src/gui/Font.hxx src/emucore/FrameBuffer.hxx src/gui/GuiObject.hxx \
-  src/gui/Command.hxx src/gui/Rect.hxx src/gui/ScrollBarWidget.hxx \
-  src/gui/Dialog.hxx src/gui/ListWidget.hxx src/gui/EditableWidget.hxx
+  src/gui/Rect.hxx src/gui/ScrollBarWidget.hxx src/gui/ListWidget.hxx \
+  src/gui/EditableWidget.hxx
 
 src/emucore/OSystem.hxx:
 
@@ -96,8 +96,6 @@ src/emucore/Serializable.hxx:
 
 src/emucore/Serializer.hxx:
 
-src/emucore/Deserializer.hxx:
-
 src/gui/StringList.hxx:
 
 src/common/Array.hxx:
@@ -106,11 +104,15 @@ src/emucore/m6502/src/bspf/src/bspf.hxx:
 
 src/emucore/FrameBuffer.hxx:
 
-src/common/VideoModeList.hxx:
+src/emucore/Settings.hxx:
 
-src/common/Array.hxx:
+src/gui/Rect.hxx:
 
 src/gui/Widget.hxx:
+
+src/gui/Dialog.hxx:
+
+src/gui/Command.hxx:
 
 src/emucore/Event.hxx:
 
@@ -120,13 +122,9 @@ src/emucore/FrameBuffer.hxx:
 
 src/gui/GuiObject.hxx:
 
-src/gui/Command.hxx:
-
 src/gui/Rect.hxx:
 
 src/gui/ScrollBarWidget.hxx:
-
-src/gui/Dialog.hxx:
 
 src/gui/ListWidget.hxx:
 

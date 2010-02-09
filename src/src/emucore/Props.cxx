@@ -8,12 +8,12 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: Props.cxx,v 1.22 2008/02/06 13:45:22 stephena Exp $
+// $Id: Props.cxx 1812 2009-06-20 22:49:45Z stephena $
 //============================================================================
 
 #include <cctype>
@@ -69,7 +69,6 @@ void Properties::set(PropertyType key, const string& value)
       case Controller_SwapPaddles:
       case Display_Format:
       case Display_Phosphor:
-      case Emulation_HmoveBlanks:
       {
         transform(myProperties[key].begin(), myProperties[key].end(),
                   myProperties[key].begin(), (int(*)(int)) toupper);
@@ -97,37 +96,27 @@ void Properties::load(istream& in)
 {
   setDefaults();
 
-  string line, key, value;
-  string::size_type one, two, three, four, garbage;
-
   // Loop reading properties
-  while(getline(in, line))
+  string key, value;
+  for(;;)
   {
-    // Strip all tabs from the line
-    while((garbage = line.find("\t")) != string::npos)
-      line.erase(garbage, 1);
+    // Get the key associated with this property
+    key = readQuotedString(in);
 
-    // Ignore commented and empty lines
-    if((line.length() == 0) || (line[0] == ';'))
-      continue;
+    // Make sure the stream is still okay
+    if(!in)
+      return;
 
-    // End of this record
-    if(line == "\"\"") 
+    // A null key signifies the end of the property list
+    if(key == "")
       break;
 
-    one = line.find("\"", 0);
-    two = line.find("\"", one + 1);
-    three = line.find("\"", two + 1);
-    four = line.find("\"", three + 1);
+    // Get the value associated with this property
+    value = readQuotedString(in);
 
-    // Invalid line if it doesn't contain 4 quotes
-    if((one == string::npos) || (two == string::npos) ||
-       (three == string::npos) || (four == string::npos))
-      break;
-
-    // Otherwise get the key and value
-    key = line.substr(one + 1, two - one - 1);
-    value = line.substr(three + 1, four - three - 1);
+    // Make sure the stream is still okay
+    if(!in)
+      return;
 
     // Set the property 
     PropertyType type = getPropertyType(key);
@@ -171,9 +160,7 @@ string Properties::readQuotedString(istream& in)
   while(in.get(c))
   {
     if(c == '"')
-    {
       break;
-    }
   }
 
   // Read characters until we see the close quote
@@ -181,21 +168,13 @@ string Properties::readQuotedString(istream& in)
   while(in.get(c))
   {
     if((c == '\\') && (in.peek() == '"'))
-    {
       in.get(c);
-    }
     else if((c == '\\') && (in.peek() == '\\'))
-    {
       in.get(c);
-    }
     else if(c == '"')
-    {
       break;
-    }
     else if(c == '\r')
-    {
       continue;
-    }
 
     s += c;
   }
@@ -220,9 +199,7 @@ void Properties::writeQuotedString(ostream& out, const string& s)
       out.put('"');
     }
     else
-    {
       out.put(s[i]);
-    }
   }
   out.put('"');
 }
@@ -298,8 +275,7 @@ const char* Properties::ourDefaultProperties[LastPropType] = {
   "34",          // Display.YStart
   "210",         // Display.Height
   "NO",          // Display.Phosphor
-  "77",          // Display.PPBlend
-  "YES"          // Emulation.HmoveBlanks
+  "77"           // Display.PPBlend
 };
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -323,6 +299,5 @@ const char* Properties::ourPropertyNames[LastPropType] = {
   "Display.YStart",
   "Display.Height",
   "Display.Phosphor",
-  "Display.PPBlend",
-  "Emulation.HmoveBlanks"
+  "Display.PPBlend"
 };

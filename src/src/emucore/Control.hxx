@@ -8,12 +8,12 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: Control.hxx,v 1.11 2008/02/06 13:45:21 stephena Exp $
+// $Id: Control.hxx 1849 2009-08-05 16:05:34Z stephena $
 //============================================================================
 
 #ifndef CONTROLLER_HXX
@@ -57,10 +57,15 @@ class System;
   of the controller from the perspective of the controller's jack.
 
   @author  Bradford W. Mott
-  @version $Id: Control.hxx,v 1.11 2008/02/06 13:45:21 stephena Exp $
+  @version $Id: Control.hxx 1849 2009-08-05 16:05:34Z stephena $
 */
 class Controller : public Serializable
 {
+  /**
+    Riot debug class needs special access to the underlying controller state
+  */
+  friend class RiotDebug;
+
   public:
     /**
       Enumeration of the controller jacks
@@ -76,18 +81,21 @@ class Controller : public Serializable
     enum Type
     {
       BoosterGrip, Driving, Keyboard, Paddles, Joystick,
-      TrackBall22, AtariVox
+      TrackBall22, TrackBall80, AmigaMouse, AtariVox, SaveKey,
+      KidVid
     };
 
   public:
     /**
       Create a new controller plugged into the specified jack
 
-      @param jack  The jack the controller is plugged into
-      @param event The event object to use for events
-      @param type  The type for this controller
+      @param jack   The jack the controller is plugged into
+      @param event  The event object to use for events
+      @param type   The type for this controller
+      @param system The system using this controller
     */
-    Controller(Jack jack, const Event& event, Type type);
+    Controller(Jack jack, const Event& event, const System& system,
+               Type type);
  
     /**
       Destructor
@@ -98,11 +106,6 @@ class Controller : public Serializable
       Returns the type of this controller.
     */
     const Type type() const;
-
-    /**
-      Inform this controller about the current System.
-    */
-    void setSystem(System* system) { mySystem = system; }
 
   public:
     /**
@@ -128,7 +131,7 @@ class Controller : public Serializable
       @param pin The pin of the controller jack to read
       @return The state of the pin
     */
-    bool read(DigitalPin pin) const;
+    virtual bool read(DigitalPin pin);
 
     /**
       Read the resistance at the specified analog pin for this controller.  
@@ -137,7 +140,7 @@ class Controller : public Serializable
       @param pin The pin of the controller jack to read
       @return The resistance at the specified pin
     */
-    Int32 read(AnalogPin pin) const;
+    virtual Int32 read(AnalogPin pin);
 
     /**
       Write the given value to the specified digital pin for this 
@@ -156,6 +159,13 @@ class Controller : public Serializable
     virtual void update() = 0;
 
     /**
+      Notification method invoked by the system right before the
+      system resets its cycle counter to zero.  It may be necessary 
+      to override this method for devices that remember cycle counts.
+    */
+    virtual void systemCyclesReset() { };
+
+    /**
       Saves the current state of this controller to the given Serializer.
 
       @param out The serializer device to save to.
@@ -164,17 +174,22 @@ class Controller : public Serializable
     virtual bool save(Serializer& out) const;
 
     /**
-      Loads the current state of this controller from the given Deserializer.
+      Loads the current state of this controller from the given Serializer.
 
-      @param in The deserializer device to load from.
+      @param in The serializer device to load from.
       @return The result of the load.  True on success, false on failure.
     */
-    virtual bool load(Deserializer& in);
+    virtual bool load(Serializer& in);
 
     /**
       Returns the name of this controller.
     */
     virtual string name() const;
+
+    /**
+      Returns more detailed information about this controller.
+    */
+    virtual string about() const;
 
   public:
     /// Constant which represents maximum resistance for analog pins
@@ -190,14 +205,14 @@ class Controller : public Serializable
     /// Reference to the event object this controller uses
     const Event& myEvent;
 
+    /// Pointer to the System object (used for timing purposes)
+    const System& mySystem;
+
     /// Specifies which type of controller this is (defined by child classes)
     const Type myType;
 
     /// Specifies the name of this controller based on type
     string myName;
-
-    /// Pointer to the System object (used for timing purposes)
-    System* mySystem;
 
     /// The boolean value on each digital pin
     bool myDigitalPinState[5];

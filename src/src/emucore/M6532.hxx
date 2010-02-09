@@ -8,33 +8,38 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: M6532.hxx,v 1.8 2008/02/19 12:33:05 stephena Exp $
+// $Id: M6532.hxx 1849 2009-08-05 16:05:34Z stephena $
 //============================================================================
 
 #ifndef M6532_HXX
 #define M6532_HXX
 
 class Console;
-class System;
-class Serializer;
-class Deserializer;
+class RiotDebug;
 
 #include "bspf.hxx"
 #include "Device.hxx"
+#include "System.hxx"
 
 /**
   RIOT
 
   @author  Bradford W. Mott
-  @version $Id: M6532.hxx,v 1.8 2008/02/19 12:33:05 stephena Exp $
+  @version $Id: M6532.hxx 1849 2009-08-05 16:05:34Z stephena $
 */
 class M6532 : public Device
 {
+  public:
+    /**
+      The RIOT debugger class is a friend who needs special access
+    */
+    friend class RiotDebug;
+
   public:
     /**
       Create a new 6532 for the specified console
@@ -89,12 +94,12 @@ class M6532 : public Device
     virtual bool save(Serializer& out) const;
 
     /**
-      Load the current state of this device from the given Deserializer.
+      Load the current state of this device from the given Serializer.
 
-      @param in  The Deserializer object to use
+      @param in  The Serializer object to use
       @return  False on any errors, else true
     */
-    virtual bool load(Deserializer& in);
+    virtual bool load(Serializer& in);
 
     /**
       Get a descriptor for the device name (used in error checking).
@@ -120,6 +125,13 @@ class M6532 : public Device
     virtual void poke(uInt16 address, uInt8 value);
 
   private:
+    inline Int32 timerClocks()
+      { return myTimer - (mySystem->cycles() - myCyclesWhenTimerSet); }
+
+    void setTimerRegister(uInt8 data, uInt8 interval);
+    void setPinState();
+
+  private:
     // Reference to the console
     const Console& myConsole;
 
@@ -135,17 +147,23 @@ class M6532 : public Device
     // Indicates the number of cycles when the timer was last set
     Int32 myCyclesWhenTimerSet;
 
-    // Indicates when the timer was read after timer interrupt occured
-    Int32 myCyclesWhenInterruptReset;
+    // Indicates if a timer interrupt has been enabled
+    bool myInterruptEnabled;
 
     // Indicates if a read from timer has taken place after interrupt occured
-    bool myTimerReadAfterInterrupt;
+    bool myInterruptTriggered;
 
     // Data Direction Register for Port A
     uInt8 myDDRA;
 
     // Data Direction Register for Port B
     uInt8 myDDRB;
+
+    // Last value written to Port A
+    uInt8 myOutA;
+
+    // Last value written to the timer registers
+    uInt8 myOutTimer[4];
 
   private:
     // Copy constructor isn't supported by this class so make it private
@@ -154,5 +172,5 @@ class M6532 : public Device
     // Assignment operator isn't supported by this class so make it private
     M6532& operator = (const M6532&);
 };
-#endif
 
+#endif

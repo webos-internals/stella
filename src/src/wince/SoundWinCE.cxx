@@ -8,21 +8,19 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
 // Windows CE Port by Kostas Nakos
-// $Id: SoundWinCE.cxx,v 1.7 2008/02/06 13:45:24 stephena Exp $
+// $Id: SoundWinCE.cxx 1849 2009-08-05 16:05:34Z stephena $
 //============================================================================
 
 #ifdef SOUND_SUPPORT
 
 #include "TIASnd.hxx"
 #include "FrameBuffer.hxx"
-#include "Serializer.hxx"
-#include "Deserializer.hxx"
 #include "Settings.hxx"
 #include "System.hxx"
 #include "OSystem.hxx"
@@ -318,7 +316,7 @@ void SoundWinCE::update(void)
 		}
 }
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-bool SoundWinCE::load(Deserializer& in)
+bool SoundWinCE::load(Serializer& in)
 {
   return true;
 }

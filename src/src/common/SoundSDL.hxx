@@ -8,33 +8,32 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: SoundSDL.hxx,v 1.19 2008/02/06 13:45:19 stephena Exp $
+// $Id: SoundSDL.hxx 1849 2009-08-05 16:05:34Z stephena $
 //============================================================================
+
+#ifdef SOUND_SUPPORT
 
 #ifndef SOUND_SDL_HXX
 #define SOUND_SDL_HXX
-
-#ifdef SOUND_SUPPORT
 
 class OSystem;
 
 #include <SDL.h>
 
-#include "Sound.hxx"
 #include "bspf.hxx"
-#include "MediaSrc.hxx"
 #include "TIASnd.hxx"
+#include "Sound.hxx"
 
 /**
   This class implements the sound API for SDL.
 
   @author Stephen Anthony and Bradford W. Mott
-  @version $Id: SoundSDL.hxx,v 1.19 2008/02/06 13:45:19 stephena Exp $
+  @version $Id: SoundSDL.hxx 1849 2009-08-05 16:05:34Z stephena $
 */
 class SoundSDL : public Sound
 {
@@ -79,17 +78,17 @@ class SoundSDL : public Sound
 
       @param framerate The base framerate depending on NTSC or PAL ROM
     */
-    void setFrameRate(uInt32 framerate);
+    void setFrameRate(float framerate);
 
     /**
       Initializes the sound device.  This must be called before any
       calls are made to derived methods.
     */
-    void initialize();
+    void open();
 
     /**
       Should be called to close the sound device.  Once called the sound
-      device can be started again using the initialize method.
+      device can be started again using the open method.
     */
     void close();
 
@@ -140,20 +139,27 @@ class SoundSDL : public Sound
 
   public:
     /**
-      Loads the current state of this device from the given Deserializer.
-
-      @param in The deserializer device to load from.
-      @return The result of the load.  True on success, false on failure.
-    */
-    bool load(Deserializer& in);
-
-    /**
       Saves the current state of this device to the given Serializer.
 
       @param out The serializer device to save to.
       @return The result of the save.  True on success, false on failure.
     */
-    bool save(Serializer& out);
+    bool save(Serializer& out) const;
+
+    /**
+      Loads the current state of this device from the given Serializer.
+
+      @param in The Serializer device to load from.
+      @return The result of the load.  True on success, false on failure.
+    */
+    bool load(Serializer& in);
+
+    /**
+      Get a descriptor for this console class (used in error checking).
+
+      @return The name of the object
+    */
+    string name() const { return "TIASound"; }
 
   protected:
     /**
@@ -253,7 +259,7 @@ class SoundSDL : public Sound
     Int32 myLastRegisterSetCycle;
 
     // Indicates the base framerate depending on if the ROM is NTSC or PAL
-    uInt32 myDisplayFrameRate;
+    float myDisplayFrameRate;
 
     // Indicates the number of channels (mono or stereo)
     uInt32 myNumChannels;
@@ -278,5 +284,6 @@ class SoundSDL : public Sound
     static void callback(void* udata, uInt8* stream, int len);
 };
 
-#endif  // SOUND_SUPPORT
 #endif
+
+#endif  // SOUND_SUPPORT

@@ -8,7 +8,7 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,6 +17,7 @@
 //============================================================================
 
 #include <cassert>
+#include <cstring>
 
 #include "System.hxx"
 #include "CartSB.hxx"
@@ -24,14 +25,13 @@
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 CartridgeSB::CartridgeSB(const uInt8* image, uInt32 size)
   : mySize(size),
-    myLastBank((mySize>>12)-1)
+    myLastBank((mySize >> 12) - 1)
 {
   // Allocate array for the ROM image
   myImage = new uInt8[mySize];
 
   // Copy the ROM image into my buffer
-  for(uInt32 addr = 0; addr < mySize; ++addr)
-    myImage[addr] = image[addr];
+  memcpy(myImage, image, mySize);
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -85,7 +85,7 @@ void CartridgeSB::install(System& system)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 uInt8 CartridgeSB::peek(uInt16 address)
 {
-  address = address & (0x17FF+(mySize>>12));
+  address = address & (0x17FF + (mySize >> 12));
 
   // Switch banks if necessary
   if ((address & 0x1800) == 0x0800)
@@ -105,7 +105,7 @@ uInt8 CartridgeSB::peek(uInt16 address)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void CartridgeSB::poke(uInt16 address, uInt8 value)
 {
-  address = address & (0x17FF+(mySize>>12));
+  address = address & (0x17FF + (mySize >> 12));
 
   // Switch banks if necessary
   if((address & 0x1800) == 0x0800)
@@ -123,11 +123,11 @@ void CartridgeSB::poke(uInt16 address, uInt8 value)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void CartridgeSB::bank(uInt16 bank)
 { 
-  if(bankLocked) return;
+  if(myBankLocked) return;
 
   // Remember what bank we're in
   myCurrentBank = bank;
-  uInt32 offset = myCurrentBank * 4096;
+  uInt32 offset = myCurrentBank << 12;
   uInt16 shift = mySystem->pageShift();
 
   // Setup the page access methods for the current bank
@@ -152,18 +152,15 @@ int CartridgeSB::bank()
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 int CartridgeSB::bankCount()
 {
-  return mySize>>12;
+  return mySize >> 12;
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 bool CartridgeSB::patch(uInt16 address, uInt8 value)
 {
-  address &= 0x0fff;
-  myImage[myCurrentBank * 4096] = value;
-  bank(myCurrentBank); // TODO: see if this is really necessary
+  myImage[(myCurrentBank << 12) + (address & 0x0FFF)] = value;
   return true;
 } 
-
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 uInt8* CartridgeSB::getImage(int& size)
@@ -175,21 +172,16 @@ uInt8* CartridgeSB::getImage(int& size)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 bool CartridgeSB::save(Serializer& out) const
 {
-  string cart = name();
+  const string& cart = name();
 
   try
   {
     out.putString(cart);
     out.putInt(myCurrentBank);
   }
-  catch(char *msg)
+  catch(const char* msg)
   {
-    cerr << msg << endl;
-    return false;
-  }
-  catch(...)
-  {
-    cerr << "Unknown error in save state for " << cart << endl;
+    cerr << "ERROR: CartridgeSB::save" << endl << "  " << msg << endl;
     return false;
   }
 
@@ -197,9 +189,9 @@ bool CartridgeSB::save(Serializer& out) const
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-bool CartridgeSB::load(Deserializer& in)
+bool CartridgeSB::load(Serializer& in)
 {
-  string cart = name();
+  const string& cart = name();
 
   try
   {
@@ -208,14 +200,9 @@ bool CartridgeSB::load(Deserializer& in)
 
     myCurrentBank = (uInt16)in.getInt();
   }
-  catch(char *msg)
+  catch(const char* msg)
   {
-    cerr << msg << endl;
-    return false;
-  }
-  catch(...)
-  {
-    cerr << "Unknown error in load state for " << cart << endl;
+    cerr << "ERROR: CartridgeSB::load" << endl << "  " << msg << endl;
     return false;
   }
 

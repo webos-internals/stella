@@ -8,12 +8,12 @@
 //  SS  SS   tt   ee      ll   ll  aa  aa
 //   SSSS     ttt  eeeee llll llll  aaaaa
 //
-// Copyright (c) 1995-2008 by Bradford W. Mott and the Stella team
+// Copyright (c) 1995-2009 by Bradford W. Mott and the Stella team
 //
 // See the file "license" for information on usage and redistribution of
 // this file, and for a DISCLAIMER OF ALL WARRANTIES.
 //
-// $Id: CartFE.hxx,v 1.10 2008/02/06 13:45:21 stephena Exp $
+// $Id: CartFE.hxx 1849 2009-08-05 16:05:34Z stephena $
 //============================================================================
 
 #ifndef CARTRIDGEFE_HXX
@@ -41,7 +41,7 @@ class System;
     monitoring the bus.
 
   @author  Bradford W. Mott
-  @version $Id: CartFE.hxx,v 1.10 2008/02/06 13:45:21 stephena Exp $
+  @version $Id: CartFE.hxx 1849 2009-08-05 16:05:34Z stephena $
 */
 class CartridgeFE : public Cartridge
 {
@@ -117,12 +117,12 @@ class CartridgeFE : public Cartridge
     virtual bool save(Serializer& out) const;
 
     /**
-      Load the current state of this cart from the given Deserializer.
+      Load the current state of this cart from the given Serializer.
 
-      @param in  The Deserializer object to use
+      @param in  The Serializer object to use
       @return  False on any errors, else true
     */
-    virtual bool load(Deserializer& in);
+    virtual bool load(Serializer& in);
 
     /**
       Get a descriptor for the device name (used in error checking).
